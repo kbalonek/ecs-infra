@@ -110,7 +110,7 @@ IMPORTANT: Before deploying the pipeline you need to set the secrets and paramet
 
 Now you can deploy de CI/CD Pipeline:
 ```shell
-$ cdk deploy MyDjangoAppPipeline
+$ cdk deploy PlatformPipeline
 ```
 CDK will ask for confirmation before creating roles, policies and security groups. Enter 'y' for yes and the deployment process will start.You will see the deployment progress in your shell and once finished you will see the pipeline in the CodePipeline panel at the AWS Console.
 

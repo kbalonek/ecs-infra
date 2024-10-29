@@ -4,13 +4,13 @@ import aws_cdk as cdk
 from aws_cdk import (
     Environment,
 )
-from my_django_app.pipeline_stack import MyDjangoAppPipelineStack
+from my_django_app.pipeline_stack import PlatformPipelineStack
 
 
 app = cdk.App()
-pipeline = MyDjangoAppPipelineStack(
+pipeline = PlatformPipelineStack(
     app,
-    "MyDjangoAppPipeline",
+    "PlatformPipeline",
     repository="kbalonek/ecs-infra",
     branch="main",
     ssm_gh_connection_param="/Github/Connection",

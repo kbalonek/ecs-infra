@@ -6,10 +6,10 @@ from aws_cdk import (
     aws_secretsmanager as secretsmanager,
     aws_rds as rds,
 )
-from .deployment_stage import MyDjangoAppPipelineStage
+from .deployment_stage import PlatformPipelineStage
 
 
-class MyDjangoAppPipelineStack(Stack):
+class PlatformPipelineStack(Stack):
     def __init__(
             self,
             scope: Construct,
@@ -35,7 +35,7 @@ class MyDjangoAppPipelineStack(Stack):
                     secretsmanager.Secret.from_secret_name_v2(
                         self,
                         "DockerHubSecret",
-                        secret_name="/MyDjangoAppPipeline/DockerHubSecret"
+                        secret_name="/PlatformPipeline/DockerHubSecret"
                     )
                 ),
             ],
@@ -50,12 +50,12 @@ class MyDjangoAppPipelineStack(Stack):
                 commands=[
                     "npm install -g aws-cdk",  # Installs the cdk cli on Codebuild
                     "pip install -r requirements.txt",  # Instructs Codebuild to install required packages
-                    "npx cdk synth MyDjangoAppPipeline",
+                    "npx cdk synth PlatformPipeline",
                 ]
             ),
         )
         # Deploy to production environment
-        self.production_env = MyDjangoAppPipelineStage(
+        self.production_env = PlatformPipelineStage(
             self, "DjangoAppProduction",
             env=aws_env,  # AWS Account and Region
             django_settings_module="app.settings.stage",
@@ -77,8 +77,8 @@ class MyDjangoAppPipelineStack(Stack):
         )
         pipeline.add_stage(self.production_env)
         # Deploy to production after manual approval
-        # self.production_env = MyDjangoAppPipelineStage(
-        #     self, "MyDjangoAppProduction",
+        # self.production_env = PlatformPipelineStage(
+        #     self, "PlatformProduction",
         #     env=aws_env,  # AWS Account and Region
         #     django_settings_module="app.settings.prod",
         #     django_debug=False,

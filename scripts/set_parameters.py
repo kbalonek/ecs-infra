@@ -21,7 +21,7 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tags",
         dest="tags",
-        help="Add tags in Key=Value format, e.g. Key=project,Value=MyDjangoApp",
+        help="Add tags in Key=Value format, e.g. Key=project,Value=Platform",
         required=False
     )
     parser.add_argument(

@@ -11,7 +11,7 @@ from aws_cdk import (
 from constructs import Construct
 
 
-class MyDjangoAppStack(Stack):
+class PlatformStack(Stack):
 
     def __init__(
             self,
@@ -56,7 +56,7 @@ class MyDjangoAppStack(Stack):
         # Create the load balancer, ECS service and the task for the Django App
         self.alb_service = ecs_patterns.ApplicationLoadBalancedEc2Service(
             self,
-            f"MyDjangoApp",
+            f"Platform",
             protocol=elbv2.ApplicationProtocol.HTTPS,
             certificate=self.domain_certificate,
             redirect_http=True,

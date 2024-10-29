@@ -7,7 +7,7 @@ from aws_cdk import (
 )
 from my_django_app.network_stack import NetworkStack
 from my_django_app.database_stack import DatabaseStack
-from my_django_app.my_django_app_stack import MyDjangoAppStack
+from my_django_app.my_django_app_stack import PlatformStack
 from my_django_app.static_files_stack import StaticFilesStack
 from my_django_app.queues_stack import QueuesStack
 from my_django_app.backend_workers_stack import BackendWorkersStack
@@ -15,7 +15,7 @@ from my_django_app.external_secrets_stack import ExternalSecretsStack
 from my_django_app.dns_route_to_alb_stack import DnsRouteToAlbStack
 
 
-class MyDjangoAppPipelineStage(Stage):
+class PlatformPipelineStage(Stage):
 
     def __init__(
             self,
@@ -98,7 +98,7 @@ class MyDjangoAppPipelineStage(Stage):
             name_prefix=f"/{self.stage_name}/",
             database_secrets=self.database.aurora_serverless_db.secret,
         )
-        self.django_app = MyDjangoAppStack(
+        self.django_app = PlatformStack(
             self,
             "AppService",
             env=aws_env,  # AWS Account and Region
