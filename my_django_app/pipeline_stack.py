@@ -30,15 +30,15 @@ class PlatformPipelineStack(Stack):
         pipeline = pipelines.CodePipeline(
             self,
             "Pipeline",
-            docker_credentials=[
-                pipelines.DockerCredential.docker_hub(
-                    secretsmanager.Secret.from_secret_name_v2(
-                        self,
-                        "DockerHubSecret",
-                        secret_name="/PlatformPipeline/DockerHubSecret"
-                    )
-                ),
-            ],
+            # docker_credentials=[
+            #     pipelines.DockerCredential.docker_hub(
+            #         secretsmanager.Secret.from_secret_name_v2(
+            #             self,
+            #             "DockerHubSecret",
+            #             secret_name="/PlatformPipeline/DockerHubSecret"
+            #         )
+            #     ),
+            # ],
             synth=pipelines.ShellStep(
                 "Synth",
                 input=pipelines.CodePipelineSource.connection(
