@@ -56,7 +56,7 @@ class PlatformPipelineStack(Stack):
         )
         # Deploy to production environment
         self.production_env = PlatformPipelineStage(
-            self, "DjangoAppProduction",
+            self, "PlatformProduction",
             env=aws_env,  # AWS Account and Region
             django_settings_module="app.settings.stage",
             django_debug=True,
