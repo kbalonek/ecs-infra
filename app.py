@@ -12,7 +12,7 @@ pipeline = MyDjangoAppPipelineStack(
     app,
     "MyDjangoAppPipeline",
     repository="kbalonek/ecs-infra",
-    branch="master",
+    branch="main",
     ssm_gh_connection_param="/Github/Connection",
     env=Environment(
         account=os.getenv('CDK_DEFAULT_ACCOUNT'),
