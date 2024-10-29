@@ -24,7 +24,7 @@ You will find the Django project and more details about how to set up the develo
 ## CDK
 
 The entrypoint for the CDK project is app.py.
-Other Stacks and stages are defined in `my_django_app/`.
+Other Stacks and stages are defined in `infra/`.
 
 ## Prerequisites to work with CDK
 - Python 3.6 or later including pip and virtualenv.

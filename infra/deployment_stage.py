@@ -5,14 +5,14 @@ from aws_cdk import (
     Environment,
     aws_rds as rds,
 )
-from my_django_app.network_stack import NetworkStack
-from my_django_app.database_stack import DatabaseStack
-from my_django_app.my_django_app_stack import PlatformStack
-from my_django_app.static_files_stack import StaticFilesStack
-from my_django_app.queues_stack import QueuesStack
-from my_django_app.backend_workers_stack import BackendWorkersStack
-from my_django_app.external_secrets_stack import ExternalSecretsStack
-from my_django_app.dns_route_to_alb_stack import DnsRouteToAlbStack
+from infra.network_stack import NetworkStack
+from infra.database_stack import DatabaseStack
+from infra.service_stack import ServiceStack
+from infra.static_files_stack import StaticFilesStack
+from infra.queues_stack import QueuesStack
+from infra.backend_workers_stack import BackendWorkersStack
+from infra.external_secrets_stack import ExternalSecretsStack
+from infra.dns_route_to_alb_stack import DnsRouteToAlbStack
 
 
 class PlatformPipelineStage(Stage):
@@ -98,7 +98,7 @@ class PlatformPipelineStage(Stage):
             name_prefix=f"/{self.stage_name}/",
             database_secrets=self.database.aurora_serverless_db.secret,
         )
-        self.django_app = PlatformStack(
+        self.django_app = ServiceStack(
             self,
             "AppService",
             env=aws_env,  # AWS Account and Region

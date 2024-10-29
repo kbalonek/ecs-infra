@@ -4,7 +4,7 @@ import aws_cdk as cdk
 from aws_cdk import (
     Environment,
 )
-from my_django_app.pipeline_stack import PlatformPipelineStack
+from infra.pipeline_stack import PlatformPipelineStack
 
 
 app = cdk.App()

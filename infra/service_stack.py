@@ -11,7 +11,7 @@ from aws_cdk import (
 from constructs import Construct
 
 
-class PlatformStack(Stack):
+class ServiceStack(Stack):
 
     def __init__(
             self,
