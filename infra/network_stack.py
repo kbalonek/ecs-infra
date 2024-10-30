@@ -24,11 +24,30 @@ class NetworkStack(Stack):
         )
         self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=self.vpc)
 
-        self.ecs_cluster.add_capacity("DefaultAutoScalingGroupCapacity",
+        launch_template = ec2.LaunchTemplate(self, "ASG-LaunchTemplate",
             instance_type=ec2.InstanceType("t3.micro"),
-            desired_capacity=1
+            machine_image=ecs.EcsOptimizedImage.amazon_linux2(),
+            user_data=ec2.UserData.for_linux()
         )
-        
+
+        auto_scaling_group = autoscaling.AutoScalingGroup(self, "ASG",
+            vpc=vpc,
+            max_capacity=1,
+            mixed_instances_policy=autoscaling.MixedInstancesPolicy(
+                instances_distribution=autoscaling.InstancesDistribution(
+                    on_demand_percentage_above_base_capacity=50
+                ),
+                launch_template=launch_template
+            )
+        )
+
+        capacity_provider = ecs.AsgCapacityProvider(self, "AsgCapacityProvider",
+            auto_scaling_group=auto_scaling_group,
+            machine_image_type=ecs.MachineImageType.AMAZON_LINUX_2,
+        )
+
+        self.ecs_cluster.add_asg_capacity_provider(capacity_provider)
+
         # Add VPC endpoints to keep the traffic inside AWS
         self.s3_private_link = ec2.GatewayVpcEndpoint(
             self,
