@@ -24,20 +24,11 @@ class NetworkStack(Stack):
         )
         self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=self.vpc)
 
-        # add customized capacity. Be sure to start the Amazon ECS-optimized AMI.
-        auto_scaling_group = autoscaling.AutoScalingGroup(self, "ASG",
-            vpc=self.vpc,
+        self.ecs_cluster.add_capacity("DefaultAutoScalingGroupCapacity",
             instance_type=ec2.InstanceType("t3.micro"),
-            machine_image=ecs.BottleRocketImage(),
-            desired_capacity=1,
-            min_capacity=1,
-            max_capacity=1,
+            desired_capacity=1
         )
-
-        capacity_provider = ecs.AsgCapacityProvider(self, "AsgCapacityProvider",
-            auto_scaling_group=auto_scaling_group
-        )
-        self.ecs_cluster.add_asg_capacity_provider(capacity_provider)
+        
         # Add VPC endpoints to keep the traffic inside AWS
         self.s3_private_link = ec2.GatewayVpcEndpoint(
             self,
