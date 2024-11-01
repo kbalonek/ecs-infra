@@ -56,18 +56,14 @@ class PlatformPipelineStage(Stage):
             env=aws_env,  # AWS Account and Region
         )
 
-        return 
         self.database = DatabaseStack(
             self,
             "Database",
             env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
             database_name="app_db",
-            min_capacity=self.db_min_capacity,
-            max_capacity=self.db_max_capacity,
-            auto_pause_minutes=self.db_auto_pause_minutes
         )
-
+        return
         # Serve static files for the Backoffice (django-admin)
         self.static_files = StaticFilesStack(
             self,
@@ -96,7 +92,7 @@ class PlatformPipelineStage(Stage):
             "ExternalParameters",
             env=aws_env,  # AWS Account and Region
             name_prefix=f"/{self.stage_name}/",
-            database_secrets=self.database.aurora_serverless_db.secret,
+            database_secrets=self.database.rds.secret,
         )
         self.django_app = ServiceStack(
             self,

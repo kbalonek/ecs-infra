@@ -25,6 +25,7 @@ class NetworkStack(Stack):
         )
         self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=self.vpc)
 
+        # adapted from https://repost.aws/questions/QUngx5J6lSSE6VMFPQVqELSw/cdkv2-ecs-with-ec2-launch-type-stuck-in-aws-ecs-service-create-in-progress
         launch_template = ec2.LaunchTemplate(
             self,
             "ASG-LaunchTemplate",
