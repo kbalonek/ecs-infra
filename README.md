@@ -12,7 +12,7 @@ You will find the Django project and more details about how to set up the develo
 * Fully-managed Queues and auto-scalable Workers using Amazon SQS and Celery Workers running in Amazon ECS+Fargate.
 * A fully-managed serverless database using Amazon Aurora Serverless.
 * Static files are stored in a private S3 bucket and served through CloudFront.
-* Private Isolated subnets and VPC Endpoints are used for improved security and performance, also allowing to remove NAT GWs. Edit: I removed VPC Endpoints as they incur daily charge even if not in use.
+* Private Isolated subnets and VPC Endpoints are used for improved security and performance, also allowing to remove NAT GWs.
 * Sensitive data such as API KEYs or Passwords are stored in AWS Secrets Manager. Other parameters are stored in AWS SSM Parameter Store.
 
 ## DevOps
