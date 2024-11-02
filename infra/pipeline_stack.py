@@ -62,10 +62,7 @@ class PlatformPipelineStack(Stack):
             django_debug=True,
             domain_name="balonek.pl",
             subdomain="testmaker",
-            # Limit scaling in staging to reduce costs
-            db_min_capacity=rds.AuroraCapacityUnit.ACU_2,
-            db_max_capacity=rds.AuroraCapacityUnit.ACU_2,
-            db_auto_pause_minutes=5,
+            
             app_task_min_scaling_capacity=1,
             app_task_max_scaling_capacity=2,
             worker_task_min_scaling_capacity=1,

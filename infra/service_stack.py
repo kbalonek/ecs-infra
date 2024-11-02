@@ -60,9 +60,7 @@ class ServiceStack(Stack):
             protocol=elbv2.ApplicationProtocol.HTTPS,
             certificate=self.domain_certificate,
             redirect_http=True,
-            cluster=self.ecs_cluster,  # Required
-            task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
-            cpu=self.task_cpu,  # Default is 256
+            cluster=self.ecs_cluster, 
             memory_limit_mib=self.task_memory_mib,  # Default is 512
             desired_count=self.task_desired_count,  # Default is 1
             task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(

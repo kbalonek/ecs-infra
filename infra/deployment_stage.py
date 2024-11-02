@@ -63,7 +63,7 @@ class PlatformPipelineStage(Stage):
             vpc=self.network.vpc,
             database_name="app_db",
         )
-        return
+        
         # Serve static files for the Backoffice (django-admin)
         self.static_files = StaticFilesStack(
             self,
@@ -78,6 +78,7 @@ class PlatformPipelineStage(Stage):
             "Queues",
             env=aws_env,  # AWS Account and Region
         )
+        
         self.app_env_vars = {
             "DJANGO_SETTINGS_MODULE": self.django_settings_module,
             "DJANGO_DEBUG": str(self.django_debug),
@@ -128,6 +129,7 @@ class PlatformPipelineStage(Stage):
             task_max_scaling_capacity=self.worker_task_max_scaling_capacity,
             scaling_steps=self.worker_scaling_steps
         )
+        return
         # Route requests made in the domain to the ALB
         self.dns = DnsRouteToAlbStack(
             self,
