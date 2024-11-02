@@ -31,7 +31,7 @@ class DatabaseStack(Stack):
             engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_16_4),
             vpc=self.vpc,
             vpc_subnets=ec2.SubnetSelection(
-                subnet_type=ec2.SubnetType.PRIVATE_ISOLATED
+                subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
             ),
             storage_encrypted=True,
             allocated_storage=10,

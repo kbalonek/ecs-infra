@@ -95,6 +95,8 @@ class PlatformPipelineStage(Stage):
             name_prefix=f"/{self.stage_name}/",
             database_secrets=self.database.rds.secret,
         )
+        return
+
         self.django_app = ServiceStack(
             self,
             "AppService",
@@ -129,7 +131,7 @@ class PlatformPipelineStage(Stage):
             task_max_scaling_capacity=self.worker_task_max_scaling_capacity,
             scaling_steps=self.worker_scaling_steps
         )
-        return
+        
         # Route requests made in the domain to the ALB
         self.dns = DnsRouteToAlbStack(
             self,
