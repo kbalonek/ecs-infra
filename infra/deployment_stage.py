@@ -56,13 +56,13 @@ class PlatformPipelineStage(Stage):
             env=aws_env,  # AWS Account and Region
         )
 
-        self.database = DatabaseStack(
-            self,
-            "Database",
-            env=aws_env,  # AWS Account and Region
-            vpc=self.network.vpc,
-            database_name="app_db",
-        )
+        # self.database = DatabaseStack(
+        #     self,
+        #     "Database",
+        #     env=aws_env,  # AWS Account and Region
+        #     vpc=self.network.vpc,
+        #     database_name="app_db",
+        # )
         
         # Serve static files for the Backoffice (django-admin)
         self.static_files = StaticFilesStack(
@@ -88,6 +88,7 @@ class PlatformPipelineStage(Stage):
             "SQS_DEFAULT_QUEUE_URL": self.queues.default_queue.queue_url,
             "CELERY_TASK_ALWAYS_EAGER": "False"
         }
+        return
         self.secrets = ExternalSecretsStack(
             self,
             "ExternalParameters",
@@ -95,6 +96,7 @@ class PlatformPipelineStage(Stage):
             name_prefix=f"/{self.stage_name}/",
             database_secrets=self.database.rds.secret,
         )
+        
         self.django_app = ServiceStack(
             self,
             "AppService",
@@ -129,7 +131,7 @@ class PlatformPipelineStage(Stage):
             task_max_scaling_capacity=self.worker_task_max_scaling_capacity,
             scaling_steps=self.worker_scaling_steps
         )
-        return
+        
         # Route requests made in the domain to the ALB
         self.dns = DnsRouteToAlbStack(
             self,
