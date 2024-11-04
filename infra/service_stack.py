@@ -56,7 +56,7 @@ class ServiceStack(Stack):
         # Create the load balancer, ECS service and the task for the Django App
         self.alb_service = ecs_patterns.ApplicationLoadBalancedEc2Service(
             self,
-            f"Platform",
+            f"App",
             protocol=elbv2.ApplicationProtocol.HTTPS,
             certificate=self.domain_certificate,
             redirect_http=True,

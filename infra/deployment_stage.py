@@ -25,9 +25,6 @@ class PlatformPipelineStage(Stage):
             django_debug: bool,
             domain_name: str,
             subdomain: str = None,
-            db_min_capacity: rds.AuroraCapacityUnit = rds.AuroraCapacityUnit.ACU_2,
-            db_max_capacity: rds.AuroraCapacityUnit = rds.AuroraCapacityUnit.ACU_4,
-            db_auto_pause_minutes: int = 0,
             app_task_min_scaling_capacity: int = 2,
             app_task_max_scaling_capacity: int = 4,
             worker_task_min_scaling_capacity: int = 1,
@@ -41,9 +38,6 @@ class PlatformPipelineStage(Stage):
         self.django_debug = django_debug
         self.domain_name = domain_name
         self.subdomain = subdomain
-        self.db_min_capacity = db_min_capacity
-        self.db_max_capacity = db_max_capacity
-        self.db_auto_pause_minutes = db_auto_pause_minutes
         self.app_task_min_scaling_capacity = app_task_min_scaling_capacity
         self.app_task_max_scaling_capacity = app_task_max_scaling_capacity
         self.worker_task_min_scaling_capacity = worker_task_min_scaling_capacity
@@ -56,13 +50,13 @@ class PlatformPipelineStage(Stage):
             env=aws_env,  # AWS Account and Region
         )
 
-        # self.database = DatabaseStack(
-        #     self,
-        #     "Database",
-        #     env=aws_env,  # AWS Account and Region
-        #     vpc=self.network.vpc,
-        #     database_name="app_db",
-        # )
+        self.database = DatabaseStack(
+            self,
+            "Database",
+            env=aws_env,  # AWS Account and Region
+            vpc=self.network.vpc,
+            database_name="app_db",
+        )
         
         # Serve static files for the Backoffice (django-admin)
         self.static_files = StaticFilesStack(
