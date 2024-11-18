@@ -48,25 +48,25 @@ class BackendWorkersStack(Stack):
 
         # Instantiate the worker
         self.container_name = f"celery_worker"
-        self.workers_fargate_service = ecs_patterns.QueueProcessingFargateService(
-            self,
-            f"CeleryWorkers",
-            queue=queue,
-            platform_version=ecs.FargatePlatformVersion.VERSION1_4,
-            cluster=self.ecs_cluster,  # Required
-            task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS),
-            cpu=task_cpu,  # Default is 256
-            memory_limit_mib=task_memory_mib,  # Default is 512
-            min_scaling_capacity=self.task_min_scaling_capacity,
-            max_scaling_capacity=self.task_max_scaling_capacity,
-            scaling_steps=self.scaling_steps,
-            image=ecs.ContainerImage.from_asset(
-                directory="app/",
-                file="docker/app/Dockerfile",
-                target="prod"
-            ),
-            container_name=self.container_name,
-            command=["start-celery-worker.sh", queue.queue_name],
-            environment=self.env_vars,
-            secrets=self.secrets
-        )
+        # self.workers_fargate_service = ecs_patterns.QueueProcessingFargateService(
+        #     self,
+        #     f"CeleryWorkers",
+        #     queue=queue,
+        #     platform_version=ecs.FargatePlatformVersion.VERSION1_4,
+        #     cluster=self.ecs_cluster,  # Required
+        #     task_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
+        #     cpu=task_cpu,  # Default is 256
+        #     memory_limit_mib=task_memory_mib,  # Default is 512
+        #     min_scaling_capacity=self.task_min_scaling_capacity,
+        #     max_scaling_capacity=self.task_max_scaling_capacity,
+        #     scaling_steps=self.scaling_steps,
+        #     image=ecs.ContainerImage.from_asset(
+        #         directory="app/",
+        #         file="docker/app/Dockerfile",
+        #         target="prod"
+        #     ),
+        #     container_name=self.container_name,
+        #     command=["start-celery-worker.sh", queue.queue_name],
+        #     environment=self.env_vars,
+        #     secrets=self.secrets
+        # )

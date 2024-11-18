@@ -19,7 +19,7 @@ class NetworkStack(Stack):
             self,
             "VPC",
             max_azs=2,  # default is all AZs in region
-            # nat_gateways=0,  # No Nat GWs are required as we will add VPC endpoints
+            nat_gateways=0,  # No Nat GWs are required as we will place instances in the public subnet
             enable_dns_hostnames=True,
             enable_dns_support=True,
         )
@@ -55,6 +55,7 @@ class NetworkStack(Stack):
                 ),
                 launch_template=launch_template,
             ),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PUBLIC),
         )
 
         capacity_provider = ecs.AsgCapacityProvider(
@@ -82,12 +83,12 @@ class NetworkStack(Stack):
         )
         self.task_subnets = ssm.StringListParameter(
             self,
-            "VpcPrivateSubnetsParam",
-            parameter_name=f"/{scope.stage_name}/VpcPrivateSubnetsParam",
+            "VpcPublicSubnetsParam",
+            parameter_name=f"/{scope.stage_name}/VpcPublicSubnetsParam",
             string_list_value=[
                 s.subnet_id
                 for s in self.vpc.select_subnets(
-                    subnet_type=ec2.SubnetType.PRIVATE_WITH_EGRESS
+                    subnet_type=ec2.SubnetType.PUBLIC
                 ).subnets
             ],
         )

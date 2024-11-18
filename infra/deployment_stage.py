@@ -49,6 +49,7 @@ class PlatformPipelineStage(Stage):
             "Network",
             env=aws_env,  # AWS Account and Region
         )
+        return
 
         self.database = DatabaseStack(
             self,
