@@ -53,6 +53,7 @@ class ServiceStack(Stack):
             self, "DomainCertificate",
             certificate_arn=self.certificate_arn
         )
+        # TODO: Resource handler returned message: "Certificate ARN 'arn:aws:acm:eu-west-1:872594238190:certificate/fa2b89ae-e759-46d4-abc9-25b0caf6237f' is not valid (Service: ElasticLoadBalancingV2, Status Code: 400, Request ID: 6f02724c-ee0b-4d34-9b8d-41d7e6b87b31)" (RequestToken: db95b72c-aed3-6e21-bc86-7d94e0d4df27, HandlerErrorCode: InvalidRequest)
         # Create the load balancer, ECS service and the task for the Django App
         self.alb_service = ecs_patterns.ApplicationLoadBalancedEc2Service(
             self,

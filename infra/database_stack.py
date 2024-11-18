@@ -43,6 +43,7 @@ class DatabaseStack(Stack):
             #     "default.aurora-postgresql10",  # Only this version is supported for Aurora Serverless now
             # ),
             instance_type=ec2.InstanceType("t4g.micro"),
+            vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
         )
         # Allow ingress traffic from ECS tasks
         self.rds.connections.allow_default_port_from_any_ipv4(
