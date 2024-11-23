@@ -105,8 +105,11 @@ Settings parameters in AWS..
 Finished.
 ```
 
+#### Domain and SSL certificate
+The project is currently using a subdomain. The root hosted zone in defined in the general AWS account, and this project creates a hosted zone for the subdomain and its certificate automatically. Once they are created, you need to set up the NS record in the root hosted zone to finish the hosted zone delegation setup. https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-routing-traffic-for-subdomains.html
+
 #### Deploying
-IMPORTANT: Before deploying the pipeline you need to set the secrets and parameters described above with your own values. You also need to set your own domain and SSL certificate.
+IMPORTANT: Before deploying the pipeline you need to set the secrets and parameters described above with your own values. 
 
 Now you can deploy de CI/CD Pipeline:
 ```shell

@@ -5,6 +5,7 @@ from aws_cdk import (
     Environment,
     aws_rds as rds,
 )
+from infra.domain_stack import DomainStack
 from infra.network_stack import NetworkStack
 from infra.database_stack import DatabaseStack
 from infra.service_stack import ServiceStack
@@ -82,7 +83,7 @@ class PlatformPipelineStage(Stage):
             "SQS_DEFAULT_QUEUE_URL": self.queues.default_queue.queue_url,
             "CELERY_TASK_ALWAYS_EAGER": "False"
         }
-        return
+
         self.secrets = ExternalSecretsStack(
             self,
             "ExternalParameters",
@@ -91,12 +92,21 @@ class PlatformPipelineStage(Stage):
             database_secrets=self.database.rds.secret,
         )
         
+        self.domain = DomainStack(
+            self,
+            "Domain",
+            env=aws_env,
+            domain_name=self.domain_name,
+            subdomain=self.subdomain,
+        )
+        
         self.django_app = ServiceStack(
             self,
             "AppService",
             env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
             ecs_cluster=self.network.ecs_cluster,
+            domain_certificate=self.domain.certificate,
             queue=self.queues.default_queue,
             env_vars=self.app_env_vars,
             secrets=self.secrets.app_secrets,
@@ -110,28 +120,29 @@ class PlatformPipelineStage(Stage):
         self.queues.default_queue.grant_send_messages(
             self.django_app.alb_service.service.task_definition.task_role
         )
-        self.workers = BackendWorkersStack(
-            self,
-            "Workers",
-            env=aws_env,  # AWS Account and Region
-            vpc=self.network.vpc,
-            ecs_cluster=self.network.ecs_cluster,
-            queue=self.queues.default_queue,
-            env_vars=self.app_env_vars,
-            secrets=self.secrets.app_secrets,
-            task_cpu=256,
-            task_memory_mib=512,
-            task_min_scaling_capacity=self.worker_task_min_scaling_capacity,
-            task_max_scaling_capacity=self.worker_task_max_scaling_capacity,
-            scaling_steps=self.worker_scaling_steps
-        )
+        
+        # self.workers = BackendWorkersStack(
+        #     self,
+        #     "Workers",
+        #     env=aws_env,  # AWS Account and Region
+        #     vpc=self.network.vpc,
+        #     ecs_cluster=self.network.ecs_cluster,
+        #     queue=self.queues.default_queue,
+        #     env_vars=self.app_env_vars,
+        #     secrets=self.secrets.app_secrets,
+        #     task_cpu=256,
+        #     task_memory_mib=512,
+        #     task_min_scaling_capacity=self.worker_task_min_scaling_capacity,
+        #     task_max_scaling_capacity=self.worker_task_max_scaling_capacity,
+        #     scaling_steps=self.worker_scaling_steps
+        # )
         
         # Route requests made in the domain to the ALB
         self.dns = DnsRouteToAlbStack(
             self,
             "DnsToAlb",
             env=aws_env,  # AWS Account and Region
-            domain_name=self.domain_name,
+            hosted_zone=self.domain.hosted_zone,
             subdomain=self.subdomain,
             alb=self.django_app.alb_service.load_balancer,
         )

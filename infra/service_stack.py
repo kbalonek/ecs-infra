@@ -19,6 +19,7 @@ class ServiceStack(Stack):
             construct_id: str,
             vpc: ec2.Vpc,
             ecs_cluster: ecs.Cluster,
+            domain_certificate: acm.Certificate,
             queue: sqs.Queue,
             env_vars: dict,
             secrets: dict,
@@ -33,6 +34,7 @@ class ServiceStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
         self.vpc = vpc
         self.ecs_cluster = ecs_cluster
+        self.domain_certificate = domain_certificate
         self.queue = queue
         self.env_vars = env_vars
         self.secrets = secrets
@@ -44,16 +46,7 @@ class ServiceStack(Stack):
 
         # Prepare parameters
         self.container_name = f"django_app"
-        # Retrieve the arn of the TLS certificate from SSM Parameter Store
-        self.certificate_arn = ssm.StringParameter.value_for_string_parameter(
-            self, f"/{scope.stage_name}/CertificateArn"
-        )
-        # Instantiate the certificate which will be required by the load balancer later
-        self.domain_certificate = acm.Certificate.from_certificate_arn(
-            self, "DomainCertificate",
-            certificate_arn=self.certificate_arn
-        )
-        # TODO: Resource handler returned message: "Certificate ARN 'arn:aws:acm:eu-west-1:872594238190:certificate/fa2b89ae-e759-46d4-abc9-25b0caf6237f' is not valid (Service: ElasticLoadBalancingV2, Status Code: 400, Request ID: 6f02724c-ee0b-4d34-9b8d-41d7e6b87b31)" (RequestToken: db95b72c-aed3-6e21-bc86-7d94e0d4df27, HandlerErrorCode: InvalidRequest)
+
         # Create the load balancer, ECS service and the task for the Django App
         self.alb_service = ecs_patterns.ApplicationLoadBalancedEc2Service(
             self,
@@ -70,6 +63,7 @@ class ServiceStack(Stack):
                     file="docker/app/Dockerfile",
                     target="prod"
                 ),
+                # image=ecs.ContainerImage.from_registry("amazon/amazon-ecs-sample"),
                 container_name=self.container_name,
                 container_port=8000,
                 environment=self.env_vars,
