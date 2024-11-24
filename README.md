@@ -108,6 +108,9 @@ Finished.
 #### Domain and SSL certificate
 The project is currently using a subdomain. The root hosted zone in defined in the general AWS account, and this project creates a hosted zone for the subdomain and its certificate automatically. Once they are created, you need to set up the NS record in the root hosted zone to finish the hosted zone delegation setup. https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-routing-traffic-for-subdomains.html
 
+When deploying the stack for the first time, the deployment will get stuck at creating the certificate. This is because Certificate Manager tries to validate the domain ownership, but the subdomain 
+hosted zone is not yet reachable from the root hosted zone. Copy the subdomain Route53 name servers and create a new NS record for the subdomain in the root hosted zone, and the deployment will progress.
+
 #### Deploying
 IMPORTANT: Before deploying the pipeline you need to set the secrets and parameters described above with your own values. 
 
