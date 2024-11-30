@@ -135,3 +135,4 @@ Enjoy!
 Reduce cost:
 - use app runner  
 - use api gateway instead ALB: https://aws.amazon.com/blogs/architecture/field-notes-integrating-http-apis-with-aws-cloud-map-and-amazon-ecs-services/
+
