@@ -1,6 +1,6 @@
 # Base off the official python image
 # Define a common stage for dev and prod images called base
-FROM python:3.10 as base
+FROM python:3.11 as base
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1

@@ -201,6 +201,8 @@ Using docker-compose:
 $ docker-compose exec app bash
 web@75e428f6ea24:~/code$
 ```
+
+
 Using docker:
 `docker exec -it <container> <command>`
 ```shell
@@ -208,6 +210,7 @@ Using docker:
 $ docker exec -it docker_app_1 /bin/bash
 web@75e428f6ea24:~/code$
 ```
+
 
 #### How can I restart or stop a single service?
 Restart can be useful if one specific service gets unresponsive or gets into some unrecoverable error state.
@@ -224,3 +227,7 @@ Stopping the backend service can be useful if you want to run it locally for deb
 $ docker-compose stop app
 Stopping app_1 ... done
 ```
+
+#### Local develpment
+
+
