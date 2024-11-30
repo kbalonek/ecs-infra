@@ -19,11 +19,24 @@ AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
 # Static files and Media are stored in S3 and served with CloudFront
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STATIC_FILES_BUCKET_NAME")
-AWS_S3_CUSTOM_DOMAIN = os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL")
-print(f"Static files served from:{AWS_S3_CUSTOM_DOMAIN}")
+STORAGES = {
+    # "default" for managing files uploaded by user
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": os.getenv("AWS_STATIC_FILES_BUCKET_NAME"),
+            "custom_domain": os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL"),
+        }
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": os.getenv("AWS_STATIC_FILES_BUCKET_NAME"),
+            "custom_domain": os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL"),
+        }
+    },
+}
+print(f"Static files served from:{os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL")}")
 
 # Redirects all non-HTTPS requests to HTTPS.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
