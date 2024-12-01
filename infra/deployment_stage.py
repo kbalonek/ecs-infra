@@ -102,7 +102,7 @@ class PlatformPipelineStage(Stage):
         
         self.django_app = ServiceStack(
             self,
-            "AppService",
+            "Service",
             env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
             ecs_cluster=self.network.ecs_cluster,
