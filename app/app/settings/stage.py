@@ -36,7 +36,7 @@ STORAGES = {
         }
     },
 }
-print(f"Static files served from:{os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL")}")
+print(f"Static files served from:{os.getenv('AWS_STATIC_FILES_CLOUDFRONT_URL')}")
 
 # Redirects all non-HTTPS requests to HTTPS.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
   # dependencies for building Python packages
   build-essential \
   # postgress client (psycopg2) dependencies
-  libpq-dev \
+  # libpq-dev \
   # cleaning up unused files to reduce the image size
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*

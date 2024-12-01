@@ -5,11 +5,11 @@
 function postgres_ready(){
 python << END
 import sys
-import psycopg2
+import psycopg
 try:
     print("Trying to connect to database '$DB_NAME' on host '$DB_HOST'..")
-    conn = psycopg2.connect(dbname="$DB_NAME", user="$DB_USER", password="$DB_PASSWORD", host="$DB_HOST")
-except psycopg2.OperationalError as e:
+    conn = psycopg.connect(dbname="$DB_NAME", user="$DB_USER", password="$DB_PASSWORD", host="$DB_HOST")
+except psycopg.OperationalError as e:
     print(e)
     sys.exit(-1)
 sys.exit(0)
