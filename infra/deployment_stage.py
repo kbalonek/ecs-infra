@@ -120,6 +120,9 @@ class PlatformPipelineStage(Stage):
         self.queues.default_queue.grant_send_messages(
             self.django_app.alb_service.service.task_definition.task_role
         )
+        self.static_files.s3_bucket.grant_write(
+            self.django_app.alb_service.service.task_definition.task_role
+        )
         
         # self.workers = BackendWorkersStack(
         #     self,

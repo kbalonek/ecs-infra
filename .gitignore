@@ -1,5 +1,5 @@
 .direnv
-postgres_data
+.postgres_data
 *.swp
 package-lock.json
 __pycache__

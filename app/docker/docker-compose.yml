@@ -13,7 +13,7 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
     volumes:
       - ./db/psql-init/db.sql:/docker-entrypoint-initdb.d/db.sql
-      - ./db/postgres_data:/var/lib/postgresql/data/
+      - ../../../.postgres_data:/var/lib/postgresql/data/
 
   app:
     build: &app-image

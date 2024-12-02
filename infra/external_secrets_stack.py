@@ -48,18 +48,18 @@ class ExternalSecretsStack(Stack):
                 database_secrets,
                 field="password"
             ),
-            "AWS_ACCESS_KEY_ID": ecs.Secret.from_secrets_manager(
-                secretsmanager.Secret.from_secret_name_v2(
-                    self,
-                    f"AWSAccessKeyIDSecret",
-                    secret_name=f"{name_prefix}AwsApiKeyId"
-                )
-            ),
-            "AWS_SECRET_ACCESS_KEY": ecs.Secret.from_secrets_manager(
-                secretsmanager.Secret.from_secret_name_v2(
-                    self,
-                    f"AWSAccessKeySecretSecret",
-                    secret_name=f"{name_prefix}AwsApiKeySecret",
-                )
-            ),
+            # "AWS_ACCESS_KEY_ID": ecs.Secret.from_secrets_manager(
+            #     secretsmanager.Secret.from_secret_name_v2(
+            #         self,
+            #         f"AWSAccessKeyIDSecret",
+            #         secret_name=f"{name_prefix}AwsApiKeyId"
+            #     )
+            # ),
+            # "AWS_SECRET_ACCESS_KEY": ecs.Secret.from_secrets_manager(
+            #     secretsmanager.Secret.from_secret_name_v2(
+            #         self,
+            #         f"AWSAccessKeySecretSecret",
+            #         secret_name=f"{name_prefix}AwsApiKeySecret",
+            #     )
+            # ),
         }

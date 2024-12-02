@@ -4,30 +4,30 @@ import boto3
 import argparse
 
 
-AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
+# AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
+# AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+# AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+# AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
 
 ecs_client = boto3.client(
     'ecs',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_REGION_NAME,
+    # aws_access_key_id=AWS_ACCESS_KEY_ID,
+    # aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    # region_name=AWS_REGION_NAME,
 )
 
 ssm_client = boto3.client(
     'ssm',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_REGION_NAME,
+    # aws_access_key_id=AWS_ACCESS_KEY_ID,
+    # aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    # region_name=AWS_REGION_NAME,
 )
 
 secrets_client = boto3.client(
     'secretsmanager',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_REGION_NAME,
+    # aws_access_key_id=AWS_ACCESS_KEY_ID,
+    # aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    # region_name=AWS_REGION_NAME,
 )
 
 
@@ -82,10 +82,10 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
             "name": "DJANGO_DEBUG",
             "value": "True"
         },
-        {
-            "name": "AWS_ACCOUNT_ID",
-            "value": AWS_ACCOUNT_ID
-        },
+        # {
+        #     "name": "AWS_ACCOUNT_ID",
+        #     "value": AWS_ACCOUNT_ID
+        # },
         {
             "name": "CELERY_TASK_ALWAYS_EAGER",
             "value": "False"
@@ -166,18 +166,18 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
             "value": db_secrets['password']
         }
     )
-    config["environment"].append(
-        {
-            "name": "AWS_ACCESS_KEY_ID",
-            "value": AWS_ACCESS_KEY_ID
-        }
-    )
-    config["environment"].append(
-        {
-            "name": "AWS_SECRET_ACCESS_KEY",
-            "value": AWS_SECRET_ACCESS_KEY
-        }
-    )
+    # config["environment"].append(
+    #     {
+    #         "name": "AWS_ACCESS_KEY_ID",
+    #         "value": AWS_ACCESS_KEY_ID
+    #     }
+    # )
+    # config["environment"].append(
+    #     {
+    #         "name": "AWS_SECRET_ACCESS_KEY",
+    #         "value": AWS_SECRET_ACCESS_KEY
+    #     }
+    # )
     # Add extra env vars if any
     if extra_env_vars:
         for var in extra_env_vars:
@@ -192,6 +192,7 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
 
 
 # This method runs a command as a task in AWS ECS Fargate
+# TODO will this use the task role? Do I need AWS secrets there?
 def run_task_in_fargate(docker_cmd, config):
 
     # Call AWS API
