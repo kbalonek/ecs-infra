@@ -15,7 +15,7 @@ print("Loading env vars..")
 # AWS Settings
 # TODO - remove this and give permissions to the role. Read up on ECS tasks and boto3
 # AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
-# AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
+AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
 # AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
 # AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
