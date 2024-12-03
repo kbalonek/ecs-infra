@@ -111,7 +111,7 @@ class PlatformPipelineStage(Stage):
             env_vars=self.app_env_vars,
             secrets=self.secrets.app_secrets,
             task_cpu=256,
-            task_memory_mib=512,
+            task_memory_mib=386,
             task_desired_count=self.app_task_min_scaling_capacity,
             task_min_scaling_capacity=self.app_task_min_scaling_capacity,
             task_max_scaling_capacity=self.app_task_max_scaling_capacity,
