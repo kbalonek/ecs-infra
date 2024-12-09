@@ -106,6 +106,8 @@ class PlatformPipelineStage(Stage):
             env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
             ecs_cluster=self.network.ecs_cluster,
+            auto_scaling_group=self.network.auto_scaling_group,
+            alb_security_group=self.network.alb_security_group,
             domain_certificate=self.domain.certificate,
             queue=self.queues.default_queue,
             env_vars=self.app_env_vars,
@@ -118,10 +120,10 @@ class PlatformPipelineStage(Stage):
         )
         # Grant permissions to the app to put messages in hte queue
         self.queues.default_queue.grant_send_messages(
-            self.django_app.alb_service.service.task_definition.task_role
+            self.django_app.task_definition.task_role
         )
         self.static_files.s3_bucket.grant_write(
-            self.django_app.alb_service.service.task_definition.task_role
+            self.django_app.task_definition.task_role
         )
         
         # self.workers = BackendWorkersStack(
@@ -147,5 +149,5 @@ class PlatformPipelineStage(Stage):
             env=aws_env,  # AWS Account and Region
             hosted_zone=self.domain.hosted_zone,
             subdomain=self.subdomain,
-            alb=self.django_app.alb_service.load_balancer,
+            alb=self.django_app.load_balancer,
         )

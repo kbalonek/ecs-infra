@@ -24,7 +24,11 @@ class NetworkStack(Stack):
             enable_dns_support=True,
         )
         self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=self.vpc)
-
+        sg = ec2.SecurityGroup(
+            self, 
+            "sg",
+            vpc=self.vpc,
+        )
         # adapted from https://repost.aws/questions/QUngx5J6lSSE6VMFPQVqELSw/cdkv2-ecs-with-ec2-launch-type-stuck-in-aws-ecs-service-create-in-progress
         launch_template = ec2.LaunchTemplate(
             self,
@@ -42,9 +46,10 @@ class NetworkStack(Stack):
                     )
                 ],
             ),
+            security_group=sg,
         )
 
-        auto_scaling_group = autoscaling.AutoScalingGroup(
+        self.auto_scaling_group = autoscaling.AutoScalingGroup(
             self,
             "ASG",
             vpc=self.vpc,
@@ -61,7 +66,7 @@ class NetworkStack(Stack):
         capacity_provider = ecs.AsgCapacityProvider(
             self,
             "AsgCapacityProvider",
-            auto_scaling_group=auto_scaling_group,
+            auto_scaling_group=self.auto_scaling_group,
             machine_image_type=ecs.MachineImageType.AMAZON_LINUX_2,
         )
 
@@ -91,4 +96,25 @@ class NetworkStack(Stack):
                     subnet_type=ec2.SubnetType.PUBLIC
                 ).subnets
             ],
+        )
+
+        # Add ALB security group
+        self.alb_security_group = ec2.SecurityGroup(
+            self,
+            "ALBSecurityGroup",
+            vpc=self.vpc,
+            description="Security group for Application Load Balancer",
+            allow_all_outbound=True,
+        )
+
+        # Allow inbound HTTP/HTTPS
+        self.alb_security_group.add_ingress_rule(
+            ec2.Peer.any_ipv4(),
+            ec2.Port.tcp(80),
+            "Allow HTTP traffic"
+        )
+        self.alb_security_group.add_ingress_rule(
+            ec2.Peer.any_ipv4(),
+            ec2.Port.tcp(443),
+            "Allow HTTPS traffic"
         )
