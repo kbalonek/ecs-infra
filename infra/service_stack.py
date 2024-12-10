@@ -8,7 +8,8 @@ from aws_cdk import (
     aws_ecs as ecs,
     aws_certificatemanager as acm,
     aws_elasticloadbalancingv2 as elbv2,
-    aws_ssm as ssm
+    aws_ssm as ssm,
+    aws_logs as logs
 )
 from constructs import Construct
 
@@ -92,6 +93,10 @@ class ServiceStack(Stack):
             memory_limit_mib=self.task_memory_mib,
             environment=self.env_vars,
             secrets=self.secrets,
+            logging=ecs.LogDrivers.aws_logs(
+                stream_prefix="django-app",
+                log_retention=logs.RetentionDays.ONE_MONTH
+            ),
         )
 
         port_mapping = ecs.PortMapping(
