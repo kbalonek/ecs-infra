@@ -17,6 +17,7 @@ class DomainStack(Stack):
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
+        # We will include the subdomain in the zone name as we are using hosted zone delegation (i.e. the zone for the domain_name is in another account)
         domain_name = f"{subdomain}.{domain_name}"
         # Create a Route53 hosted zone for the subdomain (the root zone is managed by Route53 in another account and needs to be updated manually)
         self.hosted_zone = route53.HostedZone(

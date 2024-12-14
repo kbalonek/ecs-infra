@@ -24,6 +24,7 @@ class DnsRouteToAlbStack(Stack):
             self,
             "ARecord",
             zone=hosted_zone,
-            record_name=subdomain,
+            # if the subdomain is already included in the hosted zone root, we don't need to append it again
+            # record_name=subdomain,
             target=route53.RecordTarget.from_alias(targets.LoadBalancerTarget(alb))
         )

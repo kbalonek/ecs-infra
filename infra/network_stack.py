@@ -29,12 +29,13 @@ class NetworkStack(Stack):
             "sg",
             vpc=self.vpc,
         )
-        # adapted from https://repost.aws/questions/QUngx5J6lSSE6VMFPQVqELSw/cdkv2-ecs-with-ec2-launch-type-stuck-in-aws-ecs-service-create-in-progress
         user_data = ec2.UserData.for_linux()
         user_data.add_commands(
             "echo 'ECS_ENABLE_CONTAINER_METADATA=true' >> /etc/ecs/ecs.config"
         )
 
+        # Warning - if you make any changes in the launch template, the changes 
+        # will be applied only after the EC2 instance is terminated & created anew 
         launch_template = ec2.LaunchTemplate(
             self,
             "ASG-LaunchTemplate",
