@@ -8,9 +8,10 @@ ALLOWED_HOSTS = [
     "stage.testmaker.balonek.pl",
 ]
 # The ALB uses the IP while calling the health check endpoint
-if os.environ.get("AWS_EXECUTION_ENV"):
-    ALLOWED_HOSTS.append(gethostbyname(gethostname()))
-
+PRIVATE_IP = get_ecs_private_ip()
+if PRIVATE_IP:
+    ALLOWED_HOSTS.append(PRIVATE_IP)
+print("ALLOWED_HOSTS (stage): ", ALLOWED_HOSTS)
 print("Loading env vars..")
 # AWS Settings
 # TODO - remove this and give permissions to the role. Read up on ECS tasks and boto3

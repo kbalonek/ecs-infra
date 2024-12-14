@@ -58,7 +58,7 @@ class PlatformPipelineStack(Stack):
         self.production_env = PlatformPipelineStage(
             self, "PlatformProduction",
             env=aws_env,  # AWS Account and Region
-            django_settings_module="app.settings.stage",
+            django_settings_module="app.settings.prod",
             django_debug=True,
             domain_name="balonek.pl",
             subdomain="testmaker",
