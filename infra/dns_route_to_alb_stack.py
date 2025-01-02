@@ -14,16 +14,19 @@ class DnsRouteToAlbStack(Stack):
             scope: Construct,
             construct_id: str,
             alb: elbv2.ApplicationLoadBalancer,
-            subdomain: str,
-            hosted_zone: route53.HostedZone,
+            domain_name: str,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
-
+        self.hosted_zone = route53.HostedZone.from_lookup(
+            self,
+            "HostedZone",
+            domain_name=domain_name
+        )
         self.dns_record = route53.ARecord(
             self,
             "ARecord",
-            zone=hosted_zone,
+            zone=self.hosted_zone,
             # if the subdomain is already included in the hosted zone root, we don't need to append it again
             # record_name=subdomain,
             target=route53.RecordTarget.from_alias(targets.LoadBalancerTarget(alb))

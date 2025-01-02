@@ -4,6 +4,8 @@ from aws_cdk import (
     Stage,
     Environment,
     aws_rds as rds,
+    aws_route53 as route53,
+    aws_acm as acm,
 )
 from infra.domain_stack import DomainStack
 from infra.network_stack import NetworkStack
@@ -14,6 +16,7 @@ from infra.queues_stack import QueuesStack
 from infra.backend_workers_stack import BackendWorkersStack
 from infra.external_secrets_stack import ExternalSecretsStack
 from infra.dns_route_to_alb_stack import DnsRouteToAlbStack
+from infra.load_balancer_stack import LoadBalancerStack
 
 
 class PlatformPipelineStage(Stage):
@@ -22,28 +25,15 @@ class PlatformPipelineStage(Stage):
             self,
             scope: Construct,
             construct_id: str,
-            django_settings_module: str,
             django_debug: bool,
-            domain_name: str,
-            subdomain: str = None,
-            app_task_min_scaling_capacity: int = 2,
-            app_task_max_scaling_capacity: int = 4,
-            worker_task_min_scaling_capacity: int = 1,
-            worker_task_max_scaling_capacity: int = 4,
-            worker_scaling_steps: list = None,
+            # TODO move domain and subdomain into apps_config
+            apps_config: list[dict],
+           
             **kwargs
     ):
 
         super().__init__(scope, construct_id, **kwargs)
-        self.django_settings_module = django_settings_module
         self.django_debug = django_debug
-        self.domain_name = domain_name
-        self.subdomain = subdomain
-        self.app_task_min_scaling_capacity = app_task_min_scaling_capacity
-        self.app_task_max_scaling_capacity = app_task_max_scaling_capacity
-        self.worker_task_min_scaling_capacity = worker_task_min_scaling_capacity
-        self.worker_task_max_scaling_capacity = worker_task_max_scaling_capacity
-        self.worker_scaling_steps = worker_scaling_steps
         aws_env = kwargs.get("env")
         self.network = NetworkStack(
             self,
@@ -56,10 +46,11 @@ class PlatformPipelineStage(Stage):
             "Database",
             env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
-            database_name="app_db",
+            apps_config=apps_config,
         )
         
         # Serve static files for the Backoffice (django-admin)
+        allowed_origins = [app.domain for app in apps_config]
         self.static_files = StaticFilesStack(
             self,
             "StaticFiles",
@@ -75,7 +66,7 @@ class PlatformPipelineStage(Stage):
         )
         
         self.app_env_vars = {
-            "DJANGO_SETTINGS_MODULE": self.django_settings_module,
+            "DJANGO_SETTINGS_MODULE": "app.settings.prod",
             "DJANGO_DEBUG": str(self.django_debug),
             "AWS_ACCOUNT_ID": os.getenv('CDK_DEFAULT_ACCOUNT'),
             "AWS_STATIC_FILES_BUCKET_NAME":  self.static_files.s3_bucket.bucket_name,
@@ -89,6 +80,7 @@ class PlatformPipelineStage(Stage):
             "ExternalParameters",
             env=aws_env,  # AWS Account and Region
             name_prefix=f"/{self.stage_name}/",
+            # TODO reference the app db?
             database_secrets=self.database.rds.secret,
         )
         
@@ -99,7 +91,8 @@ class PlatformPipelineStage(Stage):
             domain_name=self.domain_name,
             subdomain=self.subdomain,
         )
-        
+
+
         # Create LoadBalancerStack after domain but before service
         self.load_balancer = LoadBalancerStack(
             self,
@@ -108,16 +101,15 @@ class PlatformPipelineStage(Stage):
             vpc=self.network.vpc,
             security_group=self.network.alb_security_group,
             domain_certificate=self.domain.certificate,
+            auto_scaling_group=self.network.auto_scaling_group,
         )
         
         self.django_app = ServiceStack(
             self,
             "Service",
             env=aws_env,  # AWS Account and Region
-            vpc=self.network.vpc,
             ecs_cluster=self.network.ecs_cluster,
-            auto_scaling_group=self.network.auto_scaling_group,
-            alb_security_group=self.network.alb_security_group,
+            alb_listener=self.load_balancer.https_listener,
             domain_certificate=self.domain.certificate,
             queue=self.queues.default_queue,
             env_vars=self.app_env_vars,
@@ -127,6 +119,7 @@ class PlatformPipelineStage(Stage):
             task_desired_count=self.app_task_min_scaling_capacity,
             task_min_scaling_capacity=self.app_task_min_scaling_capacity,
             task_max_scaling_capacity=self.app_task_max_scaling_capacity,
+            
         )
         # Grant permissions to the app to put messages in hte queue
         self.queues.default_queue.grant_send_messages(
@@ -159,5 +152,5 @@ class PlatformPipelineStage(Stage):
             env=aws_env,  # AWS Account and Region
             hosted_zone=self.domain.hosted_zone,
             subdomain=self.subdomain,
-            alb=self.django_app.load_balancer,
+            alb=self.load_balancer.load_balancer,  # Use the new ALB
         )

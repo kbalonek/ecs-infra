@@ -9,6 +9,51 @@ from aws_cdk import (
 from .deployment_stage import PlatformPipelineStage
 
 
+from dataclasses import dataclass
+
+@dataclass
+class AppDefinition:
+    name: str
+    domain: str
+    external: bool
+    app_task_min_scaling_capacity: int
+    app_task_max_scaling_capacity: int
+    worker_task_min_scaling_capacity: int
+    worker_task_max_scaling_capacity: int
+    worker_scaling_steps: list
+
+
+APPS = [
+    AppDefinition(
+        name="demo",
+        domain="polyrama.co.uk",
+        subdomain="demo",
+        path="demo",
+        app_task_min_scaling_capacity=1,
+        app_task_max_scaling_capacity=2,
+        worker_task_min_scaling_capacity=1,
+        worker_task_max_scaling_capacity=2,
+        worker_scaling_steps=[
+            {"upper": 0, "change": 0},  # 0 msgs = 1 workers
+            {"lower": 10, "change": +1},  # 10 msgs = 2 workers
+        ]
+    ),
+    AppDefinition(
+        name="music",
+        domain="polyrama.co.uk",
+        subdomain="music",
+        path=None,
+        app_task_min_scaling_capacity=1,
+        app_task_max_scaling_capacity=2,
+        worker_task_min_scaling_capacity=1,
+        worker_task_max_scaling_capacity=2,
+        worker_scaling_steps=[
+            {"upper": 0, "change": 0},  # 0 msgs = 1 workers
+            {"lower": 10, "change": +1},  # 10 msgs = 2 workers
+        ]
+    )
+]
+
 class PlatformPipelineStack(Stack):
     def __init__(
             self,
@@ -54,30 +99,20 @@ class PlatformPipelineStack(Stack):
                 ]
             ),
         )
+
         # Deploy to production environment
         self.production_env = PlatformPipelineStage(
             self, "PlatformProduction",
             env=aws_env,  # AWS Account and Region
-            django_settings_module="app.settings.prod",
-            django_debug=True,
-            domain_name="balonek.pl",
-            subdomain="testmaker",
+            django_debug=False,
+            apps_config=APPS,
             
-            app_task_min_scaling_capacity=1,
-            app_task_max_scaling_capacity=2,
-            worker_task_min_scaling_capacity=1,
-            worker_task_max_scaling_capacity=2,
-            worker_scaling_steps=[
-                {"upper": 0, "change": 0},  # 0 msgs = 1 workers
-                {"lower": 10, "change": +1},  # 10 msgs = 2 workers
-            ]
         )
         pipeline.add_stage(self.production_env)
         # Deploy to production after manual approval
         # self.production_env = PlatformPipelineStage(
         #     self, "PlatformProduction",
         #     env=aws_env,  # AWS Account and Region
-        #     django_settings_module="app.settings.prod",
         #     django_debug=False,
         #     domain_name="scalabledjango.com",
         #     db_auto_pause_minutes=0,  # Keep the database always up in production
