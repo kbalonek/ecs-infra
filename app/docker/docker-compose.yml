@@ -24,7 +24,7 @@ services:
     depends_on:
       - db
     environment: &app-env
-      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+      - DJANGO_SETTINGS_MODULE=app.settings.local
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}

@@ -100,6 +100,16 @@ class PlatformPipelineStage(Stage):
             subdomain=self.subdomain,
         )
         
+        # Create LoadBalancerStack after domain but before service
+        self.load_balancer = LoadBalancerStack(
+            self,
+            "LoadBalancer",
+            env=aws_env,
+            vpc=self.network.vpc,
+            security_group=self.network.alb_security_group,
+            domain_certificate=self.domain.certificate,
+        )
+        
         self.django_app = ServiceStack(
             self,
             "Service",

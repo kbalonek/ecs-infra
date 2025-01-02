@@ -1,15 +1,61 @@
-""" Production Settings """
-from .stage import PRIVATE_IP
-from .stage import *
+""" Staging Settings """
+from .base import *
 
- 
+DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "False"))
 # Set to your Domain here
 ALLOWED_HOSTS = [
+    # TODO read this from env variables - get rid of DJANGO_SETTINGS_MODULE env variable
     "testmaker.balonek.pl",
     "www.testmaker.balonek.pl",
 ]
-
+# The ALB uses the IP while calling the health check endpoint
+PRIVATE_IP = get_ecs_private_ip()
 if PRIVATE_IP:
     ALLOWED_HOSTS.append(PRIVATE_IP)
+print("ALLOWED_HOSTS (stage): ", ALLOWED_HOSTS)
+print("Loading env vars..")
+# AWS Settings
+# TODO - remove this and give permissions to the role. Read up on ECS tasks and boto3
+# AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID")
+AWS_REGION_NAME = os.getenv("AWS_REGION_NAME")
+# AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID")
+# AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
-print("ALLOWED_HOSTS (prod): ", ALLOWED_HOSTS)
+# Static files and Media are stored in S3 and served with CloudFront
+STORAGES = {
+    # "default" for managing files uploaded by user
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": os.getenv("AWS_STATIC_FILES_BUCKET_NAME"),
+            "custom_domain": os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL"),
+        }
+    },
+    "staticfiles": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": os.getenv("AWS_STATIC_FILES_BUCKET_NAME"),
+            "custom_domain": os.getenv("AWS_STATIC_FILES_CLOUDFRONT_URL"),
+        }
+    },
+}
+print(f"Static files served from:{os.getenv('AWS_STATIC_FILES_CLOUDFRONT_URL')}")
+
+# Redirects all non-HTTPS requests to HTTPS.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = False  # The TLS connection is terminated at the load balancer
+
+# Override celery settings for SQS when running in AWS
+CELERY_BROKER_URL = "sqs://"  # Let celery get credentials from env vars or from queue settings
+SQS_DEFAULT_QUEUE_URL = os.getenv("SQS_DEFAULT_QUEUE_URL")
+CELERY_TASK_DEFAULT_QUEUE = SQS_DEFAULT_QUEUE_URL.split('/')[-1]  # Get the queue name
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "region": AWS_REGION_NAME,
+    "visibility_timeout": 3600,
+    "polling_interval": 5,
+    'predefined_queues': {  # We use an SQS queue created previously with CDK
+        CELERY_TASK_DEFAULT_QUEUE: {
+            'url': SQS_DEFAULT_QUEUE_URL  # Important: Set the queue URL with https:// here when using VPC endpoints
+        }
+    }
+}
