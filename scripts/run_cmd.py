@@ -76,7 +76,7 @@ def _build_execution_cofig(env_name, extra_env_vars=None):
         # Regular parameters
         {
             "name": "DJANGO_SETTINGS_MODULE",
-            "value": "app.settings.stage"
+            "value": "app.settings.prod"
         },
         {
             "name": "DJANGO_DEBUG",

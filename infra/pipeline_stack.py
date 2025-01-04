@@ -94,7 +94,8 @@ class PlatformPipelineStack(Stack):
                 ),
                 commands=[
                     "npm install -g aws-cdk",  # Installs the cdk cli on Codebuild
-                    "pip install -r requirements.txt",  # Instructs Codebuild to install required packages
+                    "pip install -g poetry",  # Instructs Codebuild to install required packages
+                    "poetry install",
                     "npx cdk synth PlatformPipeline",
                 ]
             ),

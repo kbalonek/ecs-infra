@@ -35,51 +35,7 @@ Creating volume "docker_postgres_data" with default driver
 Building app
 [+] Building 4.0s (17/17) FINISHED                                                                                                                         
  => [internal] load build definition from Dockerfile                                                                                                  0.5s
- => => transferring dockerfile: 38B                                                                                                                   0.0s
- => [internal] load .dockerignore                                                                                                                     2.2s
- => => transferring context: 2B                                                                                                                       0.0s
- => [internal] load metadata for docker.io/library/python:3.10                                                                                        0.0s
- => [base  1/10] FROM docker.io/library/python:3.10                                                                                                   0.0s
- => [internal] load build context                                                                                                                     0.3s
- => => transferring context: 276B                                                                                                                     0.0s
- => CACHED [base  2/10] RUN addgroup --system web     && adduser --system --ingroup web web                                                           0.0s
- => CACHED [base  3/10] RUN apt-get update && apt-get install -y -q --no-install-recommends   build-essential   libpq-dev   && apt-get purge -y --au  0.0s
- => CACHED [base  4/10] WORKDIR /home/web/code/                                                                                                       0.0s
- => CACHED [base  5/10] COPY --chown=web:web ./requirements/base.txt requirements/base.txt                                                            0.0s
- => CACHED [base  6/10] RUN pip install --no-cache-dir -r requirements/base.txt                                                                       0.0s
- => CACHED [base  7/10] COPY --chown=web:web ./docker/app/entrypoint.sh /usr/local/bin/entrypoint.sh                                                  0.0s
- => CACHED [base  8/10] RUN chmod +x /usr/local/bin/entrypoint.sh                                                                                     0.0s
- => CACHED [base  9/10] COPY --chown=web:web ./docker/app/start-celery-worker.sh /usr/local/bin/start-celery-worker.sh                                0.0s
- => CACHED [base 10/10] RUN chmod +x /usr/local/bin/start-celery-worker.sh                                                                            0.0s
- => CACHED [dev 1/2] COPY --chown=web:web ./docker/app/start-dev-server.sh /usr/local/bin/start-dev-server.sh                                         0.0s
- => CACHED [dev 2/2] RUN chmod +x /usr/local/bin/start-dev-server.sh                                                                                  0.0s
- => exporting to image                                                                                                                                1.1s
- => => exporting layers                                                                                                                               0.0s
- => => writing image sha256:c3f1d7aa49a371cd7f54f2925e745867cb054f3819e666d8051b569b1b5f725e                                                          0.0s
- => => naming to docker.io/library/docker_app                                                                                                         0.0s
-Building worker-default
-[+] Building 2.5s (17/17) FINISHED                                                                                                                         
- => [internal] load build definition from Dockerfile                                                                                                  0.7s
- => => transferring dockerfile: 38B                                                                                                                   0.0s
- => [internal] load .dockerignore                                                                                                                     0.8s
- => => transferring context: 2B                                                                                                                       0.0s
- => [internal] load metadata for docker.io/library/python:3.10                                                                                        0.0s
- => [base  1/10] FROM docker.io/library/python:3.10                                                                                                   0.0s
- => [internal] load build context                                                                                                                     0.3s
- => => transferring context: 276B                                                                                                                     0.0s
- => CACHED [base  2/10] RUN addgroup --system web     && adduser --system --ingroup web web                                                           0.0s
- => CACHED [base  3/10] RUN apt-get update && apt-get install -y -q --no-install-recommends   build-essential   libpq-dev   && apt-get purge -y --au  0.0s
- => CACHED [base  4/10] WORKDIR /home/web/code/                                                                                                       0.0s
- => CACHED [base  5/10] COPY --chown=web:web ./requirements/base.txt requirements/base.txt                                                            0.0s
- => CACHED [base  6/10] RUN pip install --no-cache-dir -r requirements/base.txt                                                                       0.0s
- => CACHED [base  7/10] COPY --chown=web:web ./docker/app/entrypoint.sh /usr/local/bin/entrypoint.sh                                                  0.0s
- => CACHED [base  8/10] RUN chmod +x /usr/local/bin/entrypoint.sh                                                                                     0.0s
- => CACHED [base  9/10] COPY --chown=web:web ./docker/app/start-celery-worker.sh /usr/local/bin/start-celery-worker.sh                                0.0s
- => CACHED [base 10/10] RUN chmod +x /usr/local/bin/start-celery-worker.sh                                                                            0.0s
- => CACHED [dev 1/2] COPY --chown=web:web ./docker/app/start-dev-server.sh /usr/local/bin/start-dev-server.sh                                         0.0s
- => CACHED [dev 2/2] RUN chmod +x /usr/local/bin/start-dev-server.sh                                                                                  0.0s
- => exporting to image                                                                                                                                1.0s
- => => exporting layers                                                                                                                               0.0s
+...
  => => writing image sha256:c3f1d7aa49a371cd7f54f2925e745867cb054f3819e666d8051b569b1b5f725e                                                          0.1s
  => => naming to docker.io/library/worker-default                                                                                                     0.0s
 Creating docker_db_1     ... done
@@ -99,8 +55,8 @@ After a successful start you will see:
 * `app`: 
     * There is an entry point script to check and wait until the db is ready. It's normal to have three or four 
     retries the first time until the db is ready to accept connection. 
-    * Migrations are applied running `python manage.py migrate`.
-    * The development server is started running `python manage.py runserver 0.0.0.0:8000`.
+    * Migrations are applied running `poetry run python manage.py migrate`.
+    * The development server is started running `poetry run python manage.py runserver 0.0.0.0:8000`.
 * `broker`: The default queue is initialized.
 * `worker-default`: The celery worker tries to connect to the broker. In case of failure it retries applying a back-off policy (in 2s, in 4s, in 8s..). It's normal to have two or three retries until the broker starts accepting connections.
  

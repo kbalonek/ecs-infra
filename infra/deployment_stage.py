@@ -5,7 +5,6 @@ from aws_cdk import (
     Environment,
     aws_rds as rds,
     aws_route53 as route53,
-    aws_acm as acm,
 )
 from infra.domain_stack import DomainStack
 from infra.network_stack import NetworkStack

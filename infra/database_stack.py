@@ -5,7 +5,7 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ssm as ssm,
     aws_secretsmanager as secretsmanager,
-    aws_custom as custom
+    custom_resources
 )
 from constructs import Construct
 import json
@@ -80,7 +80,7 @@ class DatabaseStack(Stack):
             )
 
             # Create a custom resource to create the database and user
-            custom.AwsCustomResource(
+            custom_resources.AwsCustomResource(
                 self,
                 f"Create{app_name}Database",
                 on_create=custom.AwsSdkCall(

@@ -1,0 +1,14 @@
+General rules:
+
+1. Ask clarifying questions if instructions are not clear
+
+Project goals:
+
+This project aims to build a shared AWS infrastructure for multiple django apps, based on a single ECS cluster and a single shared RDS instance. The django apps will serve as Minimal Viable Products to validate SaaS ideas. 
+
+
+Infrastructure as Code Guidelines:
+
+1. Write AWS CDK code that is modular and easy to understand
+
+

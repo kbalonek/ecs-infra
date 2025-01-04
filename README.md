@@ -49,9 +49,14 @@ Other Stacks and stages are defined in `infra/`.
 To work with CDK first install pyenv and direnv. When you cd to the project directory, direnv will activate the python version configured in .envrc.
 
 ```shell
+$ pipx install poetry
+$ poetry config virtualenvs.prefer-active-python false  # instruct poetry to use the python version from .envrc
+```
+
+
+```
 $ cd scalable-django-apps
-(.direnv) $ pip install -r requirements.txt
-(.direnv) $ pip install -r requirements-dev.txt
+(.direnv) $ poetry install --group dev
 ```
 
 ### Bootstrapping
@@ -118,11 +123,11 @@ Now you can deploy de CI/CD Pipeline:
 ```shell
 $ cdk deploy PlatformPipeline
 ```
-CDK will ask for confirmation before creating roles, policies and security groups. Enter 'y' for yes and the deployment process will start.You will see the deployment progress in your shell and once finished you will see the pipeline in the CodePipeline panel at the AWS Console.
+CDK will ask for confirmation before creating roles, policies and security groups. Enter 'y' for yes and the deployment process will start. You will see the deployment progress in your shell and once finished you will see the pipeline in the CodePipeline panel at the AWS Console.
 
 After the pipeline is deployed it will be triggered and all the stacks will be created. You can monitor the stacks creation in the CloudFormation panel at  the AWS Console.
 
-This is the only time you need to run the deploy command. The next time you commit any changes in the infrastructure code, or the app code, the pipepile will update the infrastructure and will update the ecs services as needed.
+This is the only time you need to run the deploy command. The next time you commit any changes in the infrastructure code, or the app code, the pipeline will update the infrastructure and will update the ecs services as needed.
 
 # License
 You are free to use, copy or distribute this code. Knowledge is meant to be shared :)

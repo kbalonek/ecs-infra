@@ -50,16 +50,16 @@ services:
       - ./broker/custom.conf:/opt/elasticmq.conf
     restart: always
 
-  worker-default:
-    build: *app-image
-    image: worker-default
-    restart: always
-    command: start-celery-worker.sh default
-    depends_on:
-      - db
-      - broker
-    environment: *app-env
-    volumes: *code
+  # worker-default:
+  #   build: *app-image
+  #   image: worker-default
+  #   restart: always
+  #   command: start-celery-worker.sh default
+  #   depends_on:
+  #     - db
+  #     - broker
+  #   environment: *app-env
+  #   volumes: *code
 
 volumes:
   postgres_data:

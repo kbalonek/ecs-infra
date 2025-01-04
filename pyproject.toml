@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ecs-infra"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+license = "proprietary"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+aws-cdk-lib = "2.164.1"
+constructs = ">=10.0.0,<11.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+boto3 = "^1.35.90"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
