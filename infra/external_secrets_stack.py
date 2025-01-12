@@ -13,6 +13,7 @@ class ExternalSecretsStack(Stack):
             self,
             scope: Construct,
             construct_id: str,
+            database_secrets: secretsmanager.Secret,
             app_name: str,  # Naming convention for parameters: i.e; /AppNameStageName/SecretName
             **kwargs
     ) -> None:
@@ -22,10 +23,10 @@ class ExternalSecretsStack(Stack):
         # This values will be injected as env vars on runtime
 
         # Get the database secret name from CFN export
-        db_secret_name = Fn.import_value(f"{app_name}-db-secret-name")
-        database_secrets = secretsmanager.Secret.from_secret_name_v2(
-            self, f"{app_name}DatabaseSecret", db_secret_name
-        )
+        # db_secret_name = Fn.import_value(f"{app_name}-db-secret-name")
+        # database_secrets = secretsmanager.Secret.from_secret_name_v2(
+        #     self, f"{app_name}DatabaseSecret", db_secret_name
+        # )
         self.app_secrets = {
             "DJANGO_SECRET_KEY": ecs.Secret.from_secrets_manager(
                 secretsmanager.Secret.from_secret_name_v2(

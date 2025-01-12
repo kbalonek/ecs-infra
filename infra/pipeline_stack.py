@@ -15,9 +15,9 @@ APPS = [
         name="demo",
         subdomain_name="demo",
         monorepo_app=MonorepoApp(
-            path=Path(__file__).parent.parent/ "app",
+            path=Path(__file__).parent.parent / "app",
             django_debug=True,
-            app_task_memory_mib=386,
+            app_task_memory_mib=256,
             app_task_desired_count=1,
             app_task_min_scaling_capacity=1,
             app_task_max_scaling_capacity=2,
@@ -29,18 +29,36 @@ APPS = [
             ],
         ),
     ),
-    PolyramaApp(name="music", subdomain_name="music", monorepo_app=None),
+    PolyramaApp(
+        name="test",
+        subdomain_name="test",
+        monorepo_app=MonorepoApp(
+            path=Path(__file__).parent.parent / "app",
+            django_debug=True,
+            app_task_memory_mib=256,
+            app_task_desired_count=1,
+            app_task_min_scaling_capacity=1,
+            app_task_max_scaling_capacity=2,
+            worker_task_min_scaling_capacity=1,
+            worker_task_max_scaling_capacity=2,
+            worker_scaling_steps=[
+                {"upper": 0, "change": 0},  # 0 msgs = 1 workers
+                {"lower": 10, "change": +1},  # 10 msgs = 2 workers
+            ],
+        ),
+    ),
 ]
+
 
 class PlatformPipelineStack(Stack):
     def __init__(
-            self,
-            scope: Construct,
-            construct_id: str,
-            repository: str,
-            branch: str,
-            ssm_gh_connection_param: str,
-            **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        repository: str,
+        branch: str,
+        ssm_gh_connection_param: str,
+        **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         self.repository = repository

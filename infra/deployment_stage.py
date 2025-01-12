@@ -18,7 +18,6 @@ from infra.static_files_stack import StaticFilesStack
 from infra.queues_stack import QueuesStack
 from infra.backend_workers_stack import BackendWorkersStack
 from infra.external_secrets_stack import ExternalSecretsStack
-from infra.dns_route_to_alb_stack import DnsRouteToAlbStack
 from infra.load_balancer_stack import LoadBalancerStack
 
 
@@ -67,6 +66,7 @@ class PipelineStage(Stage):
             security_group=self.network.alb_security_group,
             domain_certificate=self.domain.certificate,
             auto_scaling_group=self.network.auto_scaling_group,
+            domain_name=self.domain_name,
         )
 
 
@@ -106,7 +106,8 @@ class PipelineStage(Stage):
                 self,
                 f"{app.name}ExternalParameters",
                 env=aws_env,  # AWS Account and Region
-                app_name=app.name
+                app_name=app.name,
+                database_secrets=self.database.database_secrets[app.name],
             )
 
             django_app = ServiceStack(
@@ -114,10 +115,14 @@ class PipelineStage(Stage):
                 f"{app.name}Service",
                 env=aws_env,  # AWS Account and Region
                 app_name=app.name,
+                alb_listener=self.load_balancer.https_listener,
+                certificate=self.domain.certificate,
+                ecs_cluster=self.network.ecs_cluster,
                 queue=queues.default_queue,
                 env_vars=app_env_vars,
                 secrets=secrets.app_secrets,
                 app_path=app.monorepo_app.path,
+                fqdn=f"{app.subdomain_name}.{self.domain_name}",
                 task_memory_mib=app.monorepo_app.app_task_memory_mib,
                 task_desired_count=app.monorepo_app.app_task_desired_count,
                 task_min_scaling_capacity=app.monorepo_app.app_task_min_scaling_capacity,
@@ -144,13 +149,3 @@ class PipelineStage(Stage):
             #     task_max_scaling_capacity=self.worker_task_max_scaling_capacity,
             #     scaling_steps=self.worker_scaling_steps
             # )
-
-            # Route requests made in the domain to the ALB
-            dns = DnsRouteToAlbStack(
-                self,
-                f"{app.name}DnsToAlb",
-                env=aws_env,  # AWS Account and Region
-                hosted_zone=self.domain.hosted_zone,
-                subdomain=app.subdomain_name,
-                alb=self.load_balancer.load_balancer,  # Use the new ALB
-            )

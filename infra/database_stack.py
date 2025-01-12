@@ -70,6 +70,7 @@ class DatabaseStack(Stack):
                     exclude_characters="/@\"",
                 )
             )
+            self.database_secrets[app_name] = database_secret
             
             CfnOutput(
                 self,

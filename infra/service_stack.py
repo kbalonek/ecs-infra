@@ -26,6 +26,10 @@ class ServiceStack(Stack):
             secrets: dict,
             app_name: str,
             app_path: Path,
+            fqdn: str,
+            alb_listener: elbv2.ApplicationListener,
+            certificate: acm.Certificate,
+            ecs_cluster: ecs.Cluster,
             task_memory_mib: int = 1024,
             task_desired_count: int = 2,
             task_min_scaling_capacity: int = 2,
@@ -37,6 +41,9 @@ class ServiceStack(Stack):
         self.queue = queue
         self.env_vars = env_vars
         self.secrets = secrets
+        self.alb_listener = alb_listener
+        self.certificate = certificate
+        self.ecs_cluster = ecs_cluster
         self.task_memory_mib = task_memory_mib
         self.task_desired_count = task_desired_count
         self.task_min_scaling_capacity = task_min_scaling_capacity
@@ -44,32 +51,32 @@ class ServiceStack(Stack):
 
         # Prepare parameters
         self.container_name = f"django_app"
-        alb_listener = elbv2.ApplicationListener.from_application_listener_attributes(
-            self,
-            f"AlbListener",
-            listener_arn=Fn.import_value(f"alb-listener-arn"),
-            security_group=ec2.SecurityGroup.from_security_group_id(
-                self,
-                f"AlbSecurityGroup",
-                Fn.import_value(f"alb-security-group-id")
-            )
-        )
-        certificate = acm.Certificate.from_certificate_arn(
-            self,
-            f"Certificate",
-            certificate_arn=Fn.import_value(f"certificate-arn"),
-        )
+        # alb_listener = elbv2.ApplicationListener.from_application_listener_attributes(
+        #     self,
+        #     f"AlbListener",
+        #     listener_arn=Fn.import_value(f"alb-listener-arn"),
+        #     security_group=ec2.SecurityGroup.from_security_group_id(
+        #         self,
+        #         f"AlbSecurityGroup",
+        #         Fn.import_value(f"alb-security-group-id")
+        #     )
+        # )
+        # certificate = acm.Certificate.from_certificate_arn(
+        #     self,
+        #     f"Certificate",
+        #     certificate_arn=Fn.import_value(f"certificate-arn"),
+        # )
 
-        ecs_cluster = ecs.Cluster.from_cluster_attributes(
-            self,
-            f"EcsCluster",
-            cluster_name=Fn.import_value(f"ecs-cluster-name"),
-            vpc=ec2.Vpc.from_lookup(
-                self,
-                f"Vpc",
-                vpc_id=Fn.import_value(f"vpc-id")
-            )
-        )
+        # ecs_cluster = ecs.Cluster.from_cluster_attributes(
+        #     self,
+        #     f"EcsCluster",
+        #     cluster_name=Fn.import_value(f"ecs-cluster-name"),
+        #     vpc=ec2.Vpc.from_lookup(
+        #         self,
+        #         f"Vpc",
+        #         vpc_id=Fn.import_value(f"vpc-id")
+        #     )
+        # )
 
         # Create Task Definition
         self.task_definition = ecs.Ec2TaskDefinition(
@@ -127,11 +134,15 @@ class ServiceStack(Stack):
         )
 
         # Attach ALB to ECS Service
-        alb_listener.add_targets(
+        target_group = alb_listener.add_targets(
             "ECS",
             port=8000,
             targets=[self.service],
             health_check=health_check,
+            conditions=[
+                elbv2.ListenerCondition.host_headers([fqdn])
+            ],
+            priority=100,
         )
 
         self.task_def_arn_param = ssm.StringParameter(

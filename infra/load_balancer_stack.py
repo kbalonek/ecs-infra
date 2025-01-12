@@ -2,9 +2,11 @@ from aws_cdk import (
     CfnOutput,
     Stack,
     aws_ec2 as ec2,
+    aws_route53 as route53,
     aws_elasticloadbalancingv2 as elbv2,
     aws_certificatemanager as acm,
     aws_autoscaling as autoscaling,
+    aws_route53_targets as targets,
 )
 from constructs import Construct
 
@@ -17,6 +19,7 @@ class LoadBalancerStack(Stack):
             security_group: ec2.SecurityGroup,
             domain_certificate: acm.Certificate,
             auto_scaling_group: autoscaling.AutoScalingGroup,
+            domain_name: str,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -58,6 +61,28 @@ class LoadBalancerStack(Stack):
             default_target_groups=[dummy_target_group],
         )
 
+        self.hosted_zone = route53.HostedZone.from_lookup(
+            self,
+            "HostedZone",
+            domain_name=domain_name
+        )
+        # # Create A record for root domain
+        # self.dns_record = route53.ARecord(
+        #     self,
+        #     "ARecord",
+        #     zone=self.hosted_zone,
+        #     target=route53.RecordTarget.from_alias(targets.LoadBalancerTarget(self.load_balancer))
+        # )
+
+        # Create wildcard record for all subdomains
+        self.wildcard_record = route53.ARecord(
+            self,
+            "WildcardRecord", 
+            zone=self.hosted_zone,
+            record_name="*",
+            target=route53.RecordTarget.from_alias(targets.LoadBalancerTarget(self.load_balancer))
+        )
+        
         CfnOutput(
             self, "LoadBalancerDNS",
             value="http://"+self.load_balancer.load_balancer_dns_name
