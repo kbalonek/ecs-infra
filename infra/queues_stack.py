@@ -5,14 +5,14 @@ from aws_cdk import (
 )
 from constructs import Construct
 
-
 class QueuesStack(Stack):
 
     def __init__(
             self,
             scope: Construct,
             construct_id: str,
-            **kwargs
+            app_name: str,
+            **kwargs 
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         # Create a SQS queue
@@ -24,6 +24,6 @@ class QueuesStack(Stack):
         self.default_queue_url_param = ssm.StringParameter(
             self,
             "SqsDefaultQueueUrlParam",
-            parameter_name=f"/{scope.stage_name}/SqsDefaultQueueUrlParam",
+            parameter_name=f"/{app_name}/SqsDefaultQueueUrlParam",
             string_value=self.default_queue.queue_url
         )

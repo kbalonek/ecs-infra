@@ -1,4 +1,5 @@
 from aws_cdk import (
+    CfnOutput,
     Duration,
     Stack,
     aws_rds as rds,
@@ -26,12 +27,12 @@ class DatabaseStack(Stack):
         self.vpc = vpc
         self.backup_retention_days = backup_retention_days
         self.apps_config = apps_config
-        
+
         # Create the RDS instance
         self.rds = rds.DatabaseInstance(
             self,
             "RDS",
-            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_16_4),
+            engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_17_2),
             vpc=self.vpc,
             storage_encrypted=True,
             allocated_storage=10,
@@ -47,19 +48,20 @@ class DatabaseStack(Stack):
         )
 
         # Create database and credentials for each app
-        self.app_secrets = {}
+        self.database_secrets = {}
         for app_config in self.apps_config:
-            app_name = app_config['name']
+            app_name = app_config.name
             db_name = f"{app_name}_db"
+            user_name = f"{app_name}_user"
             
             # Create database credentials
-            db_creds = secretsmanager.Secret(
+            database_secret = secretsmanager.Secret(
                 self,
                 f"{app_name}DBCredentials",
-                secret_name=f"/{scope.stage_name}/{app_name}/DatabaseCredentials",
+                secret_name=f"/{app_name}/DatabaseCredentials",
                 generate_secret_string=secretsmanager.SecretStringGenerator(
                     secret_string_template=json.dumps({
-                        "username": f"{app_name}_user",
+                        "username": user_name,
                         "host": self.rds.instance_endpoint.hostname,
                         "port": str(self.rds.instance_endpoint.port),
                         "dbname": db_name,
@@ -69,21 +71,28 @@ class DatabaseStack(Stack):
                 )
             )
             
-            self.app_secrets[app_name] = db_creds
+            CfnOutput(
+                self,
+                f"{app_name}DatabaseSecretName",
+                value=database_secret.secret_name,
+                description=f"Secret name for {app_name} database credentials",
+                export_name=f"{app_name}-db-secret-name"
+            )
 
             # Store the secret name in SSM for reference
             ssm.StringParameter(
                 self,
                 f"{app_name}DBSecretNameParam",
-                parameter_name=f"/{scope.stage_name}/{app_name}/DatabaseSecretNameParam",
-                string_value=db_creds.secret_name,
+                parameter_name=f"/{app_name}/DatabaseSecretNameParam",
+                string_value=database_secret.secret_name,
             )
 
             # Create a custom resource to create the database and user
             custom_resources.AwsCustomResource(
                 self,
                 f"Create{app_name}Database",
-                on_create=custom.AwsSdkCall(
+                
+                on_create=custom_resources.AwsSdkCall(
                     service="RDS",
                     action="executeStatement",
                     parameters={
@@ -92,13 +101,17 @@ class DatabaseStack(Stack):
                         "database": "postgres",  # Connect to default db first
                         "sql": f"""
                             CREATE DATABASE {db_name};
-                            CREATE USER {app_name}_user WITH PASSWORD '{{resolve:secretsmanager:{db_creds.secret_name}:SecretString:password}}';
-                            GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {app_name}_user;
+                            CREATE USER {user_name} WITH PASSWORD '{{resolve:secretsmanager:{database_secret.secret_name}:SecretString:password}}';
+                            GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {user_name};
+                            \c {db_name}
+                            GRANT ALL ON SCHEMA public TO {user_name};
+                            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO {user_name};
+                            GRANT ALL ON ALL TABLES IN SCHEMA public TO {user_name};
                         """
                     },
-                    physical_resource_id=custom.PhysicalResourceId.of(f"{app_name}DBSetup")
+                    physical_resource_id=custom_resources.PhysicalResourceId.of(f"{app_name}DBSetup")
                 ),
-                policy=custom.AwsCustomResourcePolicy.from_sdk_calls(
+                policy=custom_resources.AwsCustomResourcePolicy.from_sdk_calls(
                     resources=[self.rds.instance_arn]
                 )
             )

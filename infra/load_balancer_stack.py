@@ -20,7 +20,6 @@ class LoadBalancerStack(Stack):
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
-
         self.auto_scaling_group = auto_scaling_group
         # Create ALB
         self.load_balancer = elbv2.ApplicationLoadBalancer(
@@ -37,11 +36,26 @@ class LoadBalancerStack(Stack):
             description="allow incoming traffic from ALB",
         )
 
+        # Create an empty target group as a placeholder
+        # This will return 503s until real target groups are associated with the listener
+        dummy_target_group = elbv2.ApplicationTargetGroup(
+            self,
+            "DummyTargetGroup",
+            vpc=vpc,
+            port=80,
+            protocol=elbv2.ApplicationProtocol.HTTP,
+            target_type=elbv2.TargetType.INSTANCE,
+            health_check=elbv2.HealthCheck(
+                enabled=True, path="/", healthy_http_codes="200-299"
+            ),
+        )
+
         self.https_listener = self.load_balancer.add_listener(
             "PublicListener",
             protocol=elbv2.ApplicationProtocol.HTTPS,
             open=True,
             certificates=[domain_certificate],
+            default_target_groups=[dummy_target_group],
         )
 
         CfnOutput(
@@ -53,7 +67,8 @@ class LoadBalancerStack(Stack):
             self,
             "LoadBalancerArn", 
             value=self.load_balancer.load_balancer_arn,
-            description="ARN of the Application Load Balancer"
+            description="ARN of the Application Load Balancer",
+            export_name=f"alb-listener-arn"
         )
 
         CfnOutput(

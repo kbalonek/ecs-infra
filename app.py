@@ -10,7 +10,7 @@ from infra.pipeline_stack import PlatformPipelineStack
 app = cdk.App()
 pipeline = PlatformPipelineStack(
     app,
-    "PlatformPipeline",
+    "PolyramaPipeline",
     repository="kbalonek/ecs-infra",
     branch="main",
     ssm_gh_connection_param="/Github/Connection",

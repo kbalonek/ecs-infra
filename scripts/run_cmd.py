@@ -238,7 +238,7 @@ def init_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--env",
         dest="env_name",
-        help="The environment where the command will be run: PlatformStaging or PlatformProduction.",
+        help="The environment where the command will be run: PolyramaProd or PolyramaStaging.",
         required=True
     )
     parser.add_argument(

@@ -5,6 +5,7 @@ from aws_cdk import (
     aws_ssm as ssm,
     aws_ecs as ecs,
     aws_iam as iam,
+    CfnOutput,
 )
 from constructs import Construct
 
@@ -23,7 +24,31 @@ class NetworkStack(Stack):
             enable_dns_hostnames=True,
             enable_dns_support=True,
         )
+        CfnOutput(
+            self,
+            "VpcId", 
+            value=self.vpc.vpc_id,
+            description=f"ID of the VPC",
+            export_name=f"vpc-id"
+        )
         self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=self.vpc)
+         # Save useful values in in SSM
+        self.ecs_cluster_name_param = ssm.StringParameter(
+            self,
+            "EcsClusterNameParam",
+            parameter_name=f"/EcsClusterNameParam",
+            string_value=self.ecs_cluster.cluster_name
+        )
+
+        # Export cluster name for cross-stack references
+        CfnOutput(
+            self,
+            "EcsClusterName", 
+            value=self.ecs_cluster.cluster_name,
+            description=f"Name of the ECS cluster",
+            export_name=f"ecs-cluster-name"
+        )
+
         sg = ec2.SecurityGroup(
             self, 
             "sg",
@@ -89,13 +114,13 @@ class NetworkStack(Stack):
         ssm.StringParameter(
             self,
             "VpcIdParam",
-            parameter_name=f"/{scope.stage_name}/VpcId",
+            parameter_name=f"/VpcId",
             string_value=self.vpc.vpc_id,
         )
         self.task_subnets = ssm.StringListParameter(
             self,
             "VpcPublicSubnetsParam",
-            parameter_name=f"/{scope.stage_name}/VpcPublicSubnetsParam",
+            parameter_name=f"/VpcPublicSubnetsParam",
             string_list_value=[
                 s.subnet_id
                 for s in self.vpc.select_subnets(
@@ -111,6 +136,13 @@ class NetworkStack(Stack):
             vpc=self.vpc,
             description="Security group for Application Load Balancer",
             allow_all_outbound=True,
+        )
+        CfnOutput(
+            self,
+            "AlbSecurityGroupId",
+            value=self.alb_security_group.security_group_id,
+            description="Security group ID for Application Load Balancer",
+            export_name=f"alb-security-group-id"
         )
 
         # Allow inbound HTTP/HTTPS

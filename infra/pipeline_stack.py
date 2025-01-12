@@ -1,57 +1,35 @@
+from pathlib import Path
+
 from constructs import Construct
 from aws_cdk import (
     Stack,
     pipelines as pipelines,
     aws_ssm as ssm,
-    aws_secretsmanager as secretsmanager,
-    aws_rds as rds,
 )
-from .deployment_stage import PlatformPipelineStage
-
-
-from dataclasses import dataclass
-
-@dataclass
-class AppDefinition:
-    name: str
-    domain: str
-    external: bool
-    app_task_min_scaling_capacity: int
-    app_task_max_scaling_capacity: int
-    worker_task_min_scaling_capacity: int
-    worker_task_max_scaling_capacity: int
-    worker_scaling_steps: list
+from .deployment_stage import PipelineStage
+from .models import PolyramaApp, MonorepoApp
 
 
 APPS = [
-    AppDefinition(
+    PolyramaApp(
         name="demo",
-        domain="polyrama.co.uk",
-        subdomain="demo",
-        path="demo",
-        app_task_min_scaling_capacity=1,
-        app_task_max_scaling_capacity=2,
-        worker_task_min_scaling_capacity=1,
-        worker_task_max_scaling_capacity=2,
-        worker_scaling_steps=[
-            {"upper": 0, "change": 0},  # 0 msgs = 1 workers
-            {"lower": 10, "change": +1},  # 10 msgs = 2 workers
-        ]
+        subdomain_name="demo",
+        monorepo_app=MonorepoApp(
+            path=Path(__file__).parent.parent/ "app",
+            django_debug=True,
+            app_task_memory_mib=386,
+            app_task_desired_count=1,
+            app_task_min_scaling_capacity=1,
+            app_task_max_scaling_capacity=2,
+            worker_task_min_scaling_capacity=1,
+            worker_task_max_scaling_capacity=2,
+            worker_scaling_steps=[
+                {"upper": 0, "change": 0},  # 0 msgs = 1 workers
+                {"lower": 10, "change": +1},  # 10 msgs = 2 workers
+            ],
+        ),
     ),
-    AppDefinition(
-        name="music",
-        domain="polyrama.co.uk",
-        subdomain="music",
-        path=None,
-        app_task_min_scaling_capacity=1,
-        app_task_max_scaling_capacity=2,
-        worker_task_min_scaling_capacity=1,
-        worker_task_max_scaling_capacity=2,
-        worker_scaling_steps=[
-            {"upper": 0, "change": 0},  # 0 msgs = 1 workers
-            {"lower": 10, "change": +1},  # 10 msgs = 2 workers
-        ]
-    )
+    PolyramaApp(name="music", subdomain_name="music", monorepo_app=None),
 ]
 
 class PlatformPipelineStack(Stack):
@@ -75,44 +53,35 @@ class PlatformPipelineStack(Stack):
         pipeline = pipelines.CodePipeline(
             self,
             "Pipeline",
-            # docker_credentials=[
-            #     pipelines.DockerCredential.docker_hub(
-            #         secretsmanager.Secret.from_secret_name_v2(
-            #             self,
-            #             "DockerHubSecret",
-            #             secret_name="/PlatformPipeline/DockerHubSecret"
-            #         )
-            #     ),
-            # ],
             synth=pipelines.ShellStep(
                 "Synth",
                 input=pipelines.CodePipelineSource.connection(
                     self.repository,
                     self.branch,
                     connection_arn=self.gh_connection_arn,
-                    trigger_on_push=True
+                    trigger_on_push=True,
                 ),
                 commands=[
                     "npm install -g aws-cdk",  # Installs the cdk cli on Codebuild
                     "pip install -g poetry",  # Instructs Codebuild to install required packages
                     "poetry install",
                     "npx cdk synth PlatformPipeline",
-                ]
+                ],
             ),
         )
 
         # Deploy to production environment
-        self.production_env = PlatformPipelineStage(
-            self, "PlatformProduction",
+        self.production_env = PipelineStage(
+            self,
+            "PolyramaProd",
             env=aws_env,  # AWS Account and Region
-            django_debug=False,
             apps_config=APPS,
-            
+            domain_name="polyrama.co.uk",
         )
         pipeline.add_stage(self.production_env)
         # Deploy to production after manual approval
         # self.production_env = PlatformPipelineStage(
-        #     self, "PlatformProduction",
+        #     self, "PolyramaProd",
         #     env=aws_env,  # AWS Account and Region
         #     django_debug=False,
         #     domain_name="scalabledjango.com",

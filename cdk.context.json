@@ -8,5 +8,9 @@
     "eu-west-2a",
     "eu-west-2b",
     "eu-west-2c"
-  ]
+  ],
+  "hosted-zone:account=985539802361:domainName=polyrama.co.uk:region=eu-west-2": {
+    "Id": "/hostedzone/Z04910123MSL85XVRYK53",
+    "Name": "polyrama.co.uk."
+  }
 }

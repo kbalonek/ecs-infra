@@ -86,7 +86,7 @@ Create a CodeStar connection in [AWS CodeSuite Console](https://console.aws.amaz
 The connection arn must be stored as a parameter to be used later.
 
 #### Parameters
-Parameters containing non-sensitive data are sotred in AWS System Manager Parameter Store.
+Parameters containing non-sensitive data are stored in AWS System Manager Parameter Store.
 The required parameters are listed in `.parameters.template.json`.
 These parameters can be manually created from the AWS Console, or using the helper script `scripts/set_parameters.py`:
 ```shell
@@ -116,11 +116,19 @@ The project is currently using a subdomain. The root hosted zone in defined in t
 When deploying the stack for the first time, the deployment will get stuck at creating the certificate. This is because Certificate Manager tries to validate the domain ownership, but the subdomain 
 hosted zone is not yet reachable from the root hosted zone. Copy the subdomain Route53 name servers and create a new NS record for the subdomain in the root hosted zone, and the deployment will progress.
 
+
+#### Synthesizing
+```shell
+$ cdk --profile balonek-prod-iamadmin synth
+
+```
+
 #### Deploying
 IMPORTANT: Before deploying the pipeline you need to set the secrets and parameters described above with your own values. 
 
 Now you can deploy de CI/CD Pipeline:
 ```shell
+$ . scripts/set_env_vars.sh  # don't forget!
 $ cdk deploy PlatformPipeline
 ```
 CDK will ask for confirmation before creating roles, policies and security groups. Enter 'y' for yes and the deployment process will start. You will see the deployment progress in your shell and once finished you will see the pipeline in the CodePipeline panel at the AWS Console.

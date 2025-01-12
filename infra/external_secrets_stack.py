@@ -1,4 +1,5 @@
 from aws_cdk import (
+    Fn,
     Stack,
     aws_ecs as ecs,
     aws_secretsmanager as secretsmanager,
@@ -12,20 +13,25 @@ class ExternalSecretsStack(Stack):
             self,
             scope: Construct,
             construct_id: str,
-            database_secrets: secretsmanager.ISecret,
-            name_prefix: str,  # Naming convention for parameters: i.e; /AppNameStageName/SecretName
+            app_name: str,  # Naming convention for parameters: i.e; /AppNameStageName/SecretName
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
-
+        
         # Secret values required by the app which are store in the Secrets Manager
         # This values will be injected as env vars on runtime
+
+        # Get the database secret name from CFN export
+        db_secret_name = Fn.import_value(f"{app_name}-db-secret-name")
+        database_secrets = secretsmanager.Secret.from_secret_name_v2(
+            self, f"{app_name}DatabaseSecret", db_secret_name
+        )
         self.app_secrets = {
             "DJANGO_SECRET_KEY": ecs.Secret.from_secrets_manager(
                 secretsmanager.Secret.from_secret_name_v2(
                     self,
                     f"DjangoKeySecret",
-                    secret_name=f"{name_prefix}DjangoSecretKey"
+                    secret_name=f"/{app_name}/DjangoSecretKey"
                 )
             ),
             "DB_HOST": ecs.Secret.from_secrets_manager(

@@ -69,40 +69,40 @@ typeguard = ">=2.13.3,<5.0.0"
 
 [[package]]
 name = "aws-cdk-cloud-assembly-schema"
-version = "38.0.1"
+version = "39.1.37"
 description = "Cloud Assembly Schema"
 optional = false
 python-versions = "~=3.8"
 files = [
-    {file = "aws_cdk.cloud_assembly_schema-38.0.1-py3-none-any.whl", hash = "sha256:92613b46213b460681e9424f09b77f06ff059eb1c773092540364ef82fcecf55"},
-    {file = "aws_cdk_cloud_assembly_schema-38.0.1.tar.gz", hash = "sha256:7c75861adc41f7b959910d4b3b191ea242815402e599dbfa31934892838ae25e"},
+    {file = "aws_cdk.cloud_assembly_schema-39.1.37-py3-none-any.whl", hash = "sha256:bb99e07134d1b26e97e70c66b1d6ffe01ecbe7932f53e1f43d0fa33c4c77a289"},
+    {file = "aws_cdk_cloud_assembly_schema-39.1.37.tar.gz", hash = "sha256:cd738574f51bc3c5620405566f591fd6e4bda88573d68a3b207439c406f73781"},
 ]
 
 [package.dependencies]
-jsii = ">=1.103.1,<2.0.0"
+jsii = ">=1.106.0,<2.0.0"
 publication = ">=0.0.3"
-typeguard = ">=2.13.3,<5.0.0"
+typeguard = ">=2.13.3,<4.3.0"
 
 [[package]]
 name = "aws-cdk-lib"
-version = "2.164.1"
+version = "2.174.0"
 description = "Version 2 of the AWS Cloud Development Kit library"
 optional = false
 python-versions = "~=3.8"
 files = [
-    {file = "aws_cdk_lib-2.164.1-py3-none-any.whl", hash = "sha256:758a84f806496193684b9fdf995f69cd24ce93fab2eba03a1a4cdb85115d2669"},
-    {file = "aws_cdk_lib-2.164.1.tar.gz", hash = "sha256:a0191479e3bed1579eff4df856efd30f34aca033a3b3ac1553743ac55b0820a2"},
+    {file = "aws_cdk_lib-2.174.0-py3-none-any.whl", hash = "sha256:f0368d61a520f71f9c0eff34bb59966c5b3b7d85d007649e91ed9fa28209480b"},
+    {file = "aws_cdk_lib-2.174.0.tar.gz", hash = "sha256:9e49223b075b92098c91ad7642a2cda99ec4f02d85818e0b1acabcc74b4727ea"},
 ]
 
 [package.dependencies]
-"aws-cdk.asset-awscli-v1" = ">=2.2.202,<3.0.0"
-"aws-cdk.asset-kubectl-v20" = ">=2.1.2,<3.0.0"
+"aws-cdk.asset-awscli-v1" = ">=2.2.208,<3.0.0"
+"aws-cdk.asset-kubectl-v20" = ">=2.1.3,<3.0.0"
 "aws-cdk.asset-node-proxy-agent-v6" = ">=2.1.0,<3.0.0"
-"aws-cdk.cloud-assembly-schema" = ">=38.0.0,<39.0.0"
+"aws-cdk.cloud-assembly-schema" = ">=39.0.1,<40.0.0"
 constructs = ">=10.0.0,<11.0.0"
-jsii = ">=1.103.1,<2.0.0"
+jsii = ">=1.104.0,<2.0.0"
 publication = ">=0.0.3"
-typeguard = ">=2.13.3,<5.0.0"
+typeguard = ">=2.13.3,<4.3.0"
 
 [[package]]
 name = "boto3"
@@ -399,4 +399,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "5c88cf76ac2c7ed08c0422bd31c63ee449b0dd0420c4dcf7ddfab14459f545cf"
+content-hash = "fe7531749c69e7b450e3aa3305c7788731ff998bb41861c6bc6ff226571ff4a8"

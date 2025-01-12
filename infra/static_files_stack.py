@@ -16,6 +16,7 @@ class StaticFilesStack(Stack):
             self,
             scope: Construct,
             construct_id: str,
+            app_name: str,
             bucket_name: str = None,
             cors_allowed_origins: typing.Sequence[str] = None,
             **kwargs
@@ -41,7 +42,7 @@ class StaticFilesStack(Stack):
         if self.cors_allowed_origins:
             response_headers_policy = cloudfront.ResponseHeadersPolicy(
                 self, "ResponseHeadersPolicy",
-                response_headers_policy_name=f"{scope.stage_name}CORSPolicy",
+                response_headers_policy_name=f"{app_name}-CORSPolicy",
                 comment="CORS Policy",
                 cors_behavior=cloudfront.ResponseHeadersCorsBehavior(
                     access_control_allow_credentials=True,
@@ -77,12 +78,12 @@ class StaticFilesStack(Stack):
         self.static_files_bucket_name = ssm.StringParameter(
             self,
             "StaticFilesBucketNameParam",
-            parameter_name=f"/{scope.stage_name}/StaticFilesBucketNameParam",
+            parameter_name=f"/{app_name}/StaticFilesBucketNameParam",
             string_value=self.s3_bucket.bucket_name
         )
         self.static_files_cloudfront_url = ssm.StringParameter(
             self,
             "StaticFilesCloudFrontUrlParam",
-            parameter_name=f"/{scope.stage_name}/StaticFilesCloudFrontUrlParam",
+            parameter_name=f"/{app_name}/StaticFilesCloudFrontUrlParam",
             string_value=self.cloudfront_distro.distribution_domain_name
         )

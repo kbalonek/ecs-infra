@@ -1,17 +1,19 @@
+from pathlib import Path
+
 from aws_cdk import (
-    CfnOutput,
     Duration,
+    Fn,
     Stack,
-    aws_ec2 as ec2,
-    aws_sqs as sqs,
     aws_ecs as ecs,
     aws_certificatemanager as acm,
     aws_elasticloadbalancingv2 as elbv2,
+    aws_ec2 as ec2,
     aws_ssm as ssm,
-    aws_logs as logs
+    aws_logs as logs,
+    aws_sqs as sqs,
 )
 from constructs import Construct
-
+from infra.models import PolyramaApp
 
 class ServiceStack(Stack):
 
@@ -19,13 +21,11 @@ class ServiceStack(Stack):
             self,
             scope: Construct,
             construct_id: str,
-            ecs_cluster: ecs.Cluster,
-            domain_certificate: acm.Certificate,
             queue: sqs.Queue,
             env_vars: dict,
             secrets: dict,
-            alb_listener: elbv2.ApplicationListener,
-            task_cpu: int = 256,
+            app_name: str,
+            app_path: Path,
             task_memory_mib: int = 1024,
             task_desired_count: int = 2,
             task_min_scaling_capacity: int = 2,
@@ -34,12 +34,9 @@ class ServiceStack(Stack):
     ) -> None:
 
         super().__init__(scope, construct_id, **kwargs)
-        self.ecs_cluster = ecs_cluster
-        self.domain_certificate = domain_certificate
         self.queue = queue
         self.env_vars = env_vars
         self.secrets = secrets
-        self.task_cpu = task_cpu
         self.task_memory_mib = task_memory_mib
         self.task_desired_count = task_desired_count
         self.task_min_scaling_capacity = task_min_scaling_capacity
@@ -47,7 +44,33 @@ class ServiceStack(Stack):
 
         # Prepare parameters
         self.container_name = f"django_app"
-        
+        alb_listener = elbv2.ApplicationListener.from_application_listener_attributes(
+            self,
+            f"AlbListener",
+            listener_arn=Fn.import_value(f"alb-listener-arn"),
+            security_group=ec2.SecurityGroup.from_security_group_id(
+                self,
+                f"AlbSecurityGroup",
+                Fn.import_value(f"alb-security-group-id")
+            )
+        )
+        certificate = acm.Certificate.from_certificate_arn(
+            self,
+            f"Certificate",
+            certificate_arn=Fn.import_value(f"certificate-arn"),
+        )
+
+        ecs_cluster = ecs.Cluster.from_cluster_attributes(
+            self,
+            f"EcsCluster",
+            cluster_name=Fn.import_value(f"ecs-cluster-name"),
+            vpc=ec2.Vpc.from_lookup(
+                self,
+                f"Vpc",
+                vpc_id=Fn.import_value(f"vpc-id")
+            )
+        )
+
         # Create Task Definition
         self.task_definition = ecs.Ec2TaskDefinition(
             self, "TaskDef")
@@ -55,7 +78,7 @@ class ServiceStack(Stack):
         container = self.task_definition.add_container(
             "web",
             image=ecs.ContainerImage.from_asset(
-                directory="app/",
+                directory=str(app_path),
                 file="docker/app/Dockerfile",
                 target="prod"
             ),
@@ -64,7 +87,7 @@ class ServiceStack(Stack):
             environment=self.env_vars,
             secrets=self.secrets,
             logging=ecs.LogDrivers.aws_logs(
-                stream_prefix="django-app",
+                stream_prefix=f"{app_name}-app",
                 log_retention=logs.RetentionDays.ONE_MONTH
             ),
         )
@@ -80,7 +103,7 @@ class ServiceStack(Stack):
         # Create Service
         self.service = ecs.Ec2Service(
             self, "Service",
-            cluster=self.ecs_cluster,
+            cluster=ecs_cluster,
             task_definition=self.task_definition,
             desired_count=self.task_desired_count,
         )
@@ -111,36 +134,27 @@ class ServiceStack(Stack):
             health_check=health_check,
         )
 
-        
-
-        # Save useful values in in SSM
-        self.ecs_cluster_name_param = ssm.StringParameter(
-            self,
-            "EcsClusterNameParam",
-            parameter_name=f"/{scope.stage_name}/EcsClusterNameParam",
-            string_value=self.ecs_cluster.cluster_name
-        )
         self.task_def_arn_param = ssm.StringParameter(
             self,
             "TaskDefArnParam",
-            parameter_name=f"/{scope.stage_name}/TaskDefArnParam",
+            parameter_name=f"{app_name}-task-def-arn",
             string_value=self.task_definition.task_definition_arn
         )
         self.task_def_family_param = ssm.StringParameter(
             self,
             "TaskDefFamilyParam",
-            parameter_name=f"/{scope.stage_name}/TaskDefFamilyParam",
+            parameter_name=f"{app_name}-task-def-family",
             string_value=f"family:{self.task_definition.family}"
         )
         self.exec_role_arn_param = ssm.StringParameter(
             self,
             "TaskExecRoleArnParam",
-            parameter_name=f"/{scope.stage_name}/TaskExecRoleArnParam",
+            parameter_name=f"{app_name}-task-exec-role-arn",
             string_value=self.task_definition.execution_role.role_arn
         )
         self.task_role_arn_param = ssm.StringParameter(
             self,
             "TaskRoleArnParam",
-            parameter_name=f"/{scope.stage_name}/TaskRoleArnParam",
+            parameter_name=f"{app_name}-task-role-arn",
             string_value=self.task_definition.task_role.role_arn
         )
