@@ -81,7 +81,7 @@ class PlatformPipelineStack(Stack):
                 ),
                 commands=[
                     "npm install -g aws-cdk",  # Installs the cdk cli on Codebuild
-                    "pip install -g poetry",  # Instructs Codebuild to install required packages
+                    "pip install poetry",  # Instructs Codebuild to install required packages
                     "poetry install",
                     "npx cdk synth PlatformPipeline",
                 ],
@@ -91,7 +91,7 @@ class PlatformPipelineStack(Stack):
         # Deploy to production environment
         self.production_env = PipelineStage(
             self,
-            "PolyramaProd",
+            "Prod",
             env=aws_env,  # AWS Account and Region
             apps_config=APPS,
             domain_name="polyrama.co.uk",
