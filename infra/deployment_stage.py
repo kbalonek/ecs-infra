@@ -49,6 +49,7 @@ class PipelineStage(Stage):
             apps_config=apps_config,
         )
 
+        return
         self.domain = DomainStack(
             self,
             "Domain",

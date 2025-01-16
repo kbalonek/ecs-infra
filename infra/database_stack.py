@@ -88,6 +88,7 @@ class DatabaseStack(Stack):
                 string_value=database_secret.secret_name,
             )
 
+            return
             # Create a custom resource to create the database and user
             custom_resources.AwsCustomResource(
                 self,

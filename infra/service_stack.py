@@ -135,7 +135,7 @@ class ServiceStack(Stack):
 
         # Attach ALB to ECS Service
         target_group = alb_listener.add_targets(
-            "ECS",
+            f"{app_name}TargetGroup",
             port=8000,
             targets=[self.service],
             health_check=health_check,
