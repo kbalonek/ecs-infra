@@ -5,12 +5,12 @@ description = ""
 authors = ["Your Name <you@example.com>"]
 license = "proprietary"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
 aws-cdk-lib = "^2.174.0"
 constructs = ">=10.0.0,<11.0.0"
-
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
