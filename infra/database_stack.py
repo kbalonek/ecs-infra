@@ -6,10 +6,15 @@ from aws_cdk import (
     aws_ec2 as ec2,
     aws_ssm as ssm,
     aws_secretsmanager as secretsmanager,
-    custom_resources
+    aws_iam as iam,
+    aws_lambda as lambda_,
+    custom_resources,
+    CustomResource,
 )
+from aws_cdk.aws_lambda_python_alpha import PythonFunction
 from constructs import Construct
 import json
+import aws_cdk as cdk
 
 
 class DatabaseStack(Stack):
@@ -24,6 +29,7 @@ class DatabaseStack(Stack):
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
         self.vpc = vpc
         self.backup_retention_days = backup_retention_days
         self.apps_config = apps_config
@@ -41,10 +47,52 @@ class DatabaseStack(Stack):
             instance_type=ec2.InstanceType("t4g.micro"),
             vpc_subnets=ec2.SubnetSelection(subnet_type=ec2.SubnetType.PRIVATE_ISOLATED),
         )
-        
+
         # Allow ingress traffic from ECS tasks
         self.rds.connections.allow_default_port_from_any_ipv4(
             description="Services in private subnets can access the DB"
+        )
+
+        # Create a dedicated security group for the DB init Lambda
+        db_init_sg = ec2.SecurityGroup(
+            self,
+            "DBInitSecurityGroup",
+            vpc=self.vpc,
+            description="Security group for DB initialization Lambda function",
+            allow_all_outbound=True,
+        )
+
+        # Allow ingress traffic from DB init Lambda to RDS
+        self.rds.connections.allow_default_port_from(
+            db_init_sg, description="DB initialization Lambda can access the DB"
+        )
+
+        # Create the provider that will be shared across all database initializations
+        db_init_function = PythonFunction(
+            self,
+            "DBInitFunction",
+            entry="infra/lambdas/db_init",
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            timeout=Duration.minutes(5),
+            vpc=self.vpc,
+            vpc_subnets=ec2.SubnetSelection(
+                subnet_type=ec2.SubnetType.PRIVATE_ISOLATED
+            ),
+            security_groups=[db_init_sg],
+            # environment={
+            #     "PYTHONPATH": "/var/runtime:/var/task/lib",
+            # },
+        )
+
+        # Grant the Lambda function permissions to access RDS secrets
+        self.rds.secret.grant_read(db_init_function)
+
+        # Create the provider
+        db_init_provider = custom_resources.Provider(
+            self,
+            "DBInitProvider",
+            on_event_handler=db_init_function,
+            log_retention=cdk.aws_logs.RetentionDays.ONE_WEEK
         )
 
         # Create database and credentials for each app
@@ -53,7 +101,7 @@ class DatabaseStack(Stack):
             app_name = app_config.name
             db_name = f"{app_name}_db"
             user_name = f"{app_name}_user"
-            
+
             # Create database credentials
             database_secret = secretsmanager.Secret(
                 self,
@@ -71,7 +119,10 @@ class DatabaseStack(Stack):
                 )
             )
             self.database_secrets[app_name] = database_secret
-            
+
+            # Grant the Lambda function permissions to access app secrets
+            database_secret.grant_read(db_init_function)
+
             CfnOutput(
                 self,
                 f"{app_name}DatabaseSecretName",
@@ -88,32 +139,18 @@ class DatabaseStack(Stack):
                 string_value=database_secret.secret_name,
             )
 
-            return
-            # Create a custom resource to create the database and user
-            custom_resources.AwsCustomResource(
+        for app_config in self.apps_config:
+            app_name = app_config.name
+            # Create the custom resource using the provider
+            custom_resource = CustomResource(
                 self,
-                f"Create{app_name}Database",
-                
-                on_create=custom_resources.AwsSdkCall(
-                    service="RDS",
-                    action="executeStatement",
-                    parameters={
-                        "resourceArn": self.rds.instance_arn,
-                        "secretArn": self.rds.secret.secret_arn,
-                        "database": "postgres",  # Connect to default db first
-                        "sql": f"""
-                            CREATE DATABASE {db_name};
-                            CREATE USER {user_name} WITH PASSWORD '{{resolve:secretsmanager:{database_secret.secret_name}:SecretString:password}}';
-                            GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {user_name};
-                            \c {db_name}
-                            GRANT ALL ON SCHEMA public TO {user_name};
-                            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO {user_name};
-                            GRANT ALL ON ALL TABLES IN SCHEMA public TO {user_name};
-                        """
-                    },
-                    physical_resource_id=custom_resources.PhysicalResourceId.of(f"{app_name}DBSetup")
-                ),
-                policy=custom_resources.AwsCustomResourcePolicy.from_sdk_calls(
-                    resources=[self.rds.instance_arn]
-                )
+                f"{app_name}DbInitCustomResource",
+                resource_type="Custom::DBInit",
+                service_token=db_init_provider.service_token,
+                properties={
+                    "adminSecretArn": self.rds.secret.secret_arn,
+                    "appSecretArn": self.database_secrets[app_name].secret_arn,
+                },
             )
+            custom_resource.node.add_dependency(self.rds)
+            custom_resource.node.add_dependency(self.database_secrets[app_name])
