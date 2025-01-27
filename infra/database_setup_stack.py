@@ -45,7 +45,7 @@ class DatabaseSetupStack(Stack):
             timeout=Duration.minutes(5),
             vpc=self.vpc,
             vpc_subnets=ec2.SubnetSelection(
-                subnet_type=ec2.SubnetType.PRIVATE_ISOLATED
+                subnet_type=ec2.SubnetType.PUBLIC
             ),
             security_groups=[db_init_sg],
             # environment={
