@@ -12,6 +12,7 @@ from aws_cdk import (
 from infra.domain_stack import DomainStack
 from infra.network_stack import NetworkStack
 from infra.database_stack import DatabaseStack
+from infra.database_setup_stack import DatabaseSetupStack
 from infra.models import PolyramaApp
 from infra.service_stack import ServiceStack
 from infra.static_files_stack import StaticFilesStack
@@ -46,9 +47,17 @@ class PipelineStage(Stage):
             "Database",
             env=aws_env,  # AWS Account and Region
             vpc=self.network.vpc,
-            apps_config=apps_config,
         )
 
+        self.database_setup = DatabaseSetupStack(
+            self,
+            "DatabaseSetup",
+            env=aws_env,
+            vpc=self.network.vpc,
+            apps_config=apps_config,
+            rds_instance=self.database.rds,
+            db_init_sg=self.database.db_init_sg,
+        )
         return
         self.domain = DomainStack(
             self,
