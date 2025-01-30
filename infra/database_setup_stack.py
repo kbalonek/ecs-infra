@@ -47,6 +47,9 @@ class DatabaseSetupStack(Stack):
             vpc_subnets=ec2.SubnetSelection(
                 subnet_type=ec2.SubnetType.PUBLIC
             ),
+            # we need access to SecretsManager
+            allow_public_subnet=True,
+            
             security_groups=[db_init_sg],
             # environment={
             #     "PYTHONPATH": "/var/runtime:/var/task/lib",
