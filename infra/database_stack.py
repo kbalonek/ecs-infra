@@ -51,17 +51,3 @@ class DatabaseStack(Stack):
         self.rds.connections.allow_default_port_from_any_ipv4(
             description="Services in private subnets can access the DB"
         )
-
-        # Create a dedicated security group for the DB init Lambda
-        self.db_init_sg = ec2.SecurityGroup(
-            self,
-            "DBInitSecurityGroup",
-            vpc=self.vpc,
-            description="Security group for DB initialization Lambda function",
-            allow_all_outbound=True,
-        )
-
-        # Allow ingress traffic from DB init Lambda to RDS
-        self.rds.connections.allow_default_port_from(
-            self.db_init_sg, description="DB initialization Lambda can access the DB"
-        )

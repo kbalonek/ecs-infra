@@ -15,7 +15,6 @@ class DomainStack(Stack):
             scope: Construct,
             construct_id: str,
             domain_name: str,
-            subdomains: List[str],
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -31,8 +30,7 @@ class DomainStack(Stack):
         # Create a certificate for the subdomain
         self.certificate = acm.Certificate(self, "Certificate",
             domain_name=domain_name,
-            # should we use a wildcard certificate?
-            subject_alternative_names=[f"{subdomain}.{domain_name}" for subdomain in subdomains],
+            subject_alternative_names=[f"*.{domain_name}"],
             validation=acm.CertificateValidation.from_dns(self.hosted_zone)
         )
 
