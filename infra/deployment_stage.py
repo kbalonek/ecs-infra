@@ -6,7 +6,6 @@ from aws_cdk import (
 from infra.domain_stack import DomainStack
 from infra.network_stack import NetworkStack
 from infra.database_stack import DatabaseStack
-from infra.models import PolyramaApp
 from infra.load_balancer_stack import LoadBalancerStack
 
 
