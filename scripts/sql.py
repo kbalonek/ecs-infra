@@ -9,7 +9,21 @@ GRANT ALL ON ALL TABLES IN SCHEMA public TO demo_user;
 """
 
 import boto3
-
+database_secret = secretsmanager.Secret(
+                self,
+                f"{app_name}DBCredentials",
+                secret_name=f"/{app_name}/DatabaseCredentials",
+                generate_secret_string=secretsmanager.SecretStringGenerator(
+                    secret_string_template=json.dumps({
+                        "username": user_name,
+                        "host": self.rds_instance.instance_endpoint.hostname,
+                        "port": str(self.rds_instance.instance_endpoint.port),
+                        "dbname": db_name,
+                    }),
+                    generate_string_key="password",
+                    exclude_characters="/@\"",
+                )
+            )
 # Initialize RDS Data client
 rds_client = boto3.client('rds-data')
 

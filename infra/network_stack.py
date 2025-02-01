@@ -32,7 +32,7 @@ class NetworkStack(Stack):
             export_name=f"vpc-id"
         )
         self.ecs_cluster = ecs.Cluster(self, f"ECSCluster", vpc=self.vpc)
-         # Save useful values in in SSM
+        # Save useful values in in SSM
         self.ecs_cluster_name_param = ssm.StringParameter(
             self,
             "EcsClusterNameParam",
@@ -59,8 +59,8 @@ class NetworkStack(Stack):
             "echo 'ECS_ENABLE_CONTAINER_METADATA=true' >> /etc/ecs/ecs.config"
         )
 
-        # Warning - if you make any changes in the launch template, the changes 
-        # will be applied only after the EC2 instance is terminated & created anew 
+        # Warning - if you make any changes in the launch template, the changes
+        # will be applied only after the EC2 instance is terminated & created anew
         launch_template = ec2.LaunchTemplate(
             self,
             "ASG-LaunchTemplate",
@@ -74,7 +74,11 @@ class NetworkStack(Stack):
                 managed_policies=[
                     iam.ManagedPolicy.from_aws_managed_policy_name(
                         "service-role/AmazonEC2ContainerServiceforEC2Role"
-                    )
+                    ),
+                    # Allow access to the instance with Session Manager
+                    iam.ManagedPolicy.from_aws_managed_policy_name(
+                        "AmazonSSMManagedInstanceCore"
+                    ),
                 ],
             ),
             security_group=sg,
